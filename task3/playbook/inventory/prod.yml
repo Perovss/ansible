@@ -1,0 +1,7 @@
+---
+  elasticsearch:
+    hosts:
+      localhost:
+        ansible_connection: ssh
+        ansible_ssh_port: 2222
+        ansible_ssh_user: root
