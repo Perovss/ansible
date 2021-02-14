@@ -1,0 +1,9 @@
+---
+  - src: git@github.com:Perovss/kibana.git
+    scm: git
+    version: "v1.0.0"
+    name: kibana 
+  - src: git@github.com:Perovss/elastic.git
+    scm: git
+    version: "v1.0.0"
+    name: elastic
