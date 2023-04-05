@@ -1,0 +1,4 @@
+---
+packages:
+- python-setuptools
+- python3-pip

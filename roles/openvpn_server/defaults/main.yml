@@ -1,0 +1,40 @@
+---
+openvpn_version: "release/2.5"
+openvpn_dependency_packages:
+  - openvpn
+  - bridge-utils
+  - vlan
+  - iptables-persistent
+
+push_routes: ""
+private_dns: []
+dns_search: []
+target_group: routers
+openvpn_connect_name: "{{openvpn_dev}}"
+openvpn_port: "11443"
+openvpn_proto: udp
+openvpn_dev: tap
+openvpn_cipher: AES-256-CBC
+openvpn_comp: "compress lz4-v2"
+br_interface: br0
+vlan_id: "2"
+tap_interface: tap0
+easyrsa_dir: "/etc/openvpn/keys"
+clients_names: []
+revoke_clients: []
+openvpn_mail_host: "smtp.office365.com"
+openvpn_mail_port: "587"
+openvpn_mail_user: "support-infra@tourmachine.ru"
+openvpn_mail_admin: "sergey.perov@tourmachine.ru"
+openvpn_secure: "try"
+openvpn_domain: "tourmachine.ru"
+mail_preffix: "tm"
+openvpn_client_instruction_url: "https://tourmachine-my.sharepoint.com/:b:/g/personal/sergey_perov_tourmachine_ru/EWRnnxtG_XZBo0fKplZOIb4B7ct8nC9snvQ4I78jS-nDXQ?e=SFYThT"
+openvpn_mail_pass: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          32633063393832323139313033666134383538666466353064633331656135383761333763306466
+          6463323962323866343463356666386631386237393063620a393162323430353964326438663862
+          32666531363665333135363238653065623462653161343066303735346465333564333062316239
+          3766346663303035620a353336313863643263356231653239326234643365383537353734353063
+          64326335653733613634386366363533343935303735333965366430613531366631
+...

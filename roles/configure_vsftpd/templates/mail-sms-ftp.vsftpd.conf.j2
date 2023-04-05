@@ -1,0 +1,43 @@
+listen=YES
+listen_ipv6=NO
+listen_port=2020
+ftp_data_port=2121
+local_enable=YES
+write_enable=YES
+local_umask=022
+use_localtime=YES
+xferlog_enable=YES
+xferlog_file=/var/log/vsftpd.log
+xferlog_std_format=YES
+idle_session_timeout=600
+data_connection_timeout=120
+ascii_upload_enable=YES
+chroot_local_user=YES
+allow_writeable_chroot=YES
+pasv_enable=YES
+guest_enable=YES
+virtual_use_local_privs=YES
+hide_ids=YES
+seccomp_sandbox=NO
+# Системный пользователь от имени котрого подключаются виртуальные
+guest_username={{vsftpd_guest_username}}
+
+# Автоматическое назначение домашнего каталога для виртуальных пользователей
+user_sub_token=$USER
+local_root={{vsftpd_local_root}}$USER
+
+# Входящие соединения контроллируются через tcp_wrappers
+tcp_wrappers=YES
+
+# Указывает исходящим с сервера соединениям использовать 20-й порт
+connect_from_port_20=NO
+
+# Включение специальных ftp команд, некоторые клиенты без этого могут зависать
+async_abor_enable=YES
+
+# Показывать файлы, начинающиеся с точки
+force_dot_files=YES
+
+# Порты для пассивного режима работы
+pasv_min_port=2121
+pasv_max_port=2121

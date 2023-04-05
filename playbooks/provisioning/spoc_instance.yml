@@ -1,0 +1,25 @@
+---
+- hosts: spoc-test.soft-machine.tech
+  tasks:
+
+    - name: install docker-compose in pyenv
+      import_role:
+        name: manage_python_packages
+      vars:
+        pyenv_virtualenv: ansible_python3
+        python_packages:
+          - docker
+          - PyYAML
+          - docker-compose
+
+    - name: install docker
+      import_role:
+        name: install_docker
+
+    - name: install docker-compose in local pip
+      import_role:
+        name: manage_local_pip
+      vars:
+        local_pip_packages:
+        - package_name: docker-compose
+...

@@ -1,0 +1,11 @@
+---
+- import_tasks: install_redhat.yml
+  when: ansible_facts['os_family']|lower == 'redhat'
+
+- import_tasks: install_debian.yml
+  when: ansible_facts['os_family']|lower == 'debian'
+
+- import_tasks: check_services.yml
+
+- import_tasks: configure_filebeat.yml
+...

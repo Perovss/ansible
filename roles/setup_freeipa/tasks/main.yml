@@ -1,0 +1,16 @@
+---
+- import_tasks: common.yml
+  become: true
+
+- import_tasks: firewalld.yml
+  become: true
+
+- import_tasks: master.yml
+  become: true
+
+- import_tasks: replica.yml
+  become: true
+
+- import_tasks: configure.yml
+  become: true
+...

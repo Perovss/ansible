@@ -1,0 +1,12 @@
+---
+- name: Set python env
+  set_fact:
+    ansible_python_interpreter: "{{ansible_env.HOME}}/.pyenv/shims/python"
+
+- name: Login into private registry
+  docker_login:
+    registry: "{{docker_login_registry}}"
+    username: "{{docker_login_username}}"
+    password: "{{docker_login_password}}"
+
+...

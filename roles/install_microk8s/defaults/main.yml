@@ -1,0 +1,5 @@
+---
+microk8s_addons: {}
+# enable high-availability?
+# microk8s_enable_HA: false
+...

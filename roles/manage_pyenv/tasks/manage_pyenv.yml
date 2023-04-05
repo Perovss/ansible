@@ -1,0 +1,45 @@
+---
+
+- name: pyenv install python version for ci user
+  shell: "/home/{{ci_user | default('jenkins',true)}}/.pyenv/bin/pyenv install $(echo {{ item_pyenvs.python_version }})"
+  args:
+    creates: "~/.pyenv/versions/{{ item_pyenvs.python_version }}"  
+  become_user: "{{ci_user | default('jenkins',true)}}"
+  become: yes
+  loop: "{{ item.0.pyenvs }}"
+  loop_control:
+      loop_var: item_pyenvs
+
+- name: Create versions directory 
+  ansible.builtin.file:
+    path: "{{item.0.user_home | default('/home/' + item.0.user_name)}}/.pyenv/versions"
+    state: directory
+    owner: "{{item.0.user_name}}"
+    group: "{{item.0.user_name}}"    
+    mode: '0755'
+  become: yes
+
+- name: copy preinstall pyenv python for users
+  copy:
+    src: "/home/{{ci_user | default('jenkins',true)}}/.pyenv/versions/{{item_pyenvs.python_version}}"
+    dest: "{{item.0.user_home | default('/home/' + item.0.user_name)}}/.pyenv/versions/{{item_pyenvs.python_version}}"
+    owner: "{{item.0.user_name}}"
+    group: "{{item.0.user_name}}"
+    remote_src: yes
+  become: yes
+  loop: "{{ item.0.pyenvs }}"
+  loop_control:
+    loop_var: item_pyenvs    
+    label: "username: {{item.0.user_name}}, versions: {{item_pyenvs.python_version}}"
+
+- name: pyenv install virtualenvs
+  shell: "~/.pyenv/bin/pyenv virtualenv {{item_pyenvs.python_version }} {{ item_pyenvs.virtualenv}}"
+  args:
+    creates: "~/.pyenv/versions/{{item_pyenvs.python_version }}/envs/{{ item_pyenvs.virtualenv}}"
+  become_user: "{{item.0.user_name}}"    
+  become: yes
+  loop: "{{item.0.pyenvs}}"
+  loop_control:
+      loop_var: item_pyenvs
+
+...

@@ -1,0 +1,9 @@
+---
+
+- include_tasks: setup_bashrc.yml
+  loop: "{{users_params|subelements('servers')}}"
+  loop_control:
+    label: "username: {{item.0.user_name}}, servers: {{item.1 if item.1 is defined else ''}}"
+  when: item.1 in group_names and item.0.user_state is not defined
+ 
+...

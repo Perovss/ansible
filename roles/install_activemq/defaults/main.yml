@@ -1,0 +1,9 @@
+---
+activemq_version: "5.15.12"
+activemq_download_url: 'https://archive.apache.org/dist/activemq/{{activemq_version }}/apache-activemq-{{ activemq_version}}-bin.tar.gz'
+activemq_download_dir: "/opt"
+activemq_current_install_dir: '{{activemq_download_dir }}/apache-activemq-{{ activemq_version}}'
+activemq_link: "activemq"
+
+
+...

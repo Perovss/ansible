@@ -1,0 +1,8 @@
+---
+- name: restart sendmail
+  systemd:
+    name: sendmail
+    enabled: yes
+    state: restarted
+  become: true
+...

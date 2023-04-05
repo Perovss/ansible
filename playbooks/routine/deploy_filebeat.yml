@@ -1,0 +1,9 @@
+---
+- hosts: all
+  tasks:
+
+    - name: install filebeat
+      import_role:
+        name: install_filebeat
+      tags: filebeat
+...

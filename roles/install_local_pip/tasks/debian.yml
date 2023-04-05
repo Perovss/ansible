@@ -1,0 +1,14 @@
+---
+- name: Install pip3 & virtualenv
+  apt:
+    name: "{{packages}}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  register: apt_result
+  until: apt_result is not failed
+  retries: 3
+  delay: 10
+  ignore_errors: yes
+  become: true
+...

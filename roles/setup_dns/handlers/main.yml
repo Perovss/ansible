@@ -1,0 +1,8 @@
+---
+- name: restart resolvconf
+  systemd:
+    name: resolvconf
+    enabled: yes
+    state: restarted
+  become: true
+...

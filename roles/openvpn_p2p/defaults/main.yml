@@ -1,0 +1,7 @@
+---
+openvpn_version: "release/2.5"
+openvpn_dependency_packages:
+- openvpn
+- iptables-persistent
+target_group: routers
+...

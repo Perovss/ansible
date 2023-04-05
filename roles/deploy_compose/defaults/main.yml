@@ -1,0 +1,17 @@
+---
+server_name: ""
+
+docker_compose_params:
+  - docker_compose_project_src: "/srv/"
+    docker_compose_project_name: ""
+    docker_compose_build: ""
+    docker_compose_nocache: ""
+    docker_compose_pull: ""
+    docker_compose_remove_images: ""
+    docker_compose_remove_orphans: ""
+    docker_compose_remove_volumes: ""
+    docker_compose_recreate: ""
+    docker_compose_stopped: ""
+    docker_compose_restarted: ""
+    docker_compose_state: ""
+...

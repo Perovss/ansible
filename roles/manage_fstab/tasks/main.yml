@@ -1,0 +1,10 @@
+---
+- name: Mount up device
+  mount:
+    path: "{{item.mount_path}}"
+    src: "{{item.mount_src}}"
+    fstype: "{{item.mount_fstype | default('ext4',true)}}"
+    state: "{{item.mount_state | default('mounted',true)}}"
+  loop: "{{mount_params}}"
+  become: yes
+...

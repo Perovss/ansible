@@ -1,0 +1,41 @@
+---
+version: "3.7"
+services:
+  app:
+    image: atlassian/bamboo-server
+    container_name: bamboo
+    environment:
+      - "TZ=Europe/Moscow"
+    depends_on:
+      - db
+    ports:
+      - "80:8085"
+      - "54663:54663"
+    volumes:
+      - "bamboo-data:/var/atlassian/application-data/bamboo"
+  db:
+    image: postgres:9.6.17-alpine
+    container_name:  postgres
+    environment:
+      - POSTGRES_USER=bamboo
+      - POSTGRES_PASSWORD=bamboo
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/data
+  agent:
+    image: docker.tourmachine.tech/bamboo-agent-custom:latest
+    container_name: agent
+    init: true
+    command: "http://bamboo.soft-machine.ru"
+    environment:    
+      - "TZ=Europe/Moscow"
+    volumes:
+      - "agent-data:/home/bamboo/bamboo-agent-home"
+
+
+volumes:
+  bamboo-data:
+  agent-data:
+  postgresql:
+  postgresql_data:
+...

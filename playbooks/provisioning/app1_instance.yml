@@ -1,0 +1,34 @@
+---
+- hosts: app1
+  tasks:
+
+    - name: install docker-compose in pyenv
+      import_role:
+        name: manage_python_packages
+      vars:
+        pyenv_virtualenv: ansible_python3
+        python_packages:
+          - docker
+          - PyYAML
+          - docker-compose
+
+    - name: install docker
+      import_role:
+        name: install_docker
+
+    - name: login in private registry
+      import_role:
+        name: docker_login
+      ignore_errors: true  
+
+    - name: install docker-compose in local pip
+      import_role:
+        name: manage_local_pip
+      vars:
+        local_pip_packages:
+        - package_name: docker-compose
+
+    - name: create perf users & adding ssh key
+      import_role:
+        name: users_manage
+...

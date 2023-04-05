@@ -1,0 +1,21 @@
+---
+
+- name: setup crontab
+  cron:
+    name: "{{item.cron_name}}"
+    month: "{{item.cron_month | default(omit)}}"
+    weekday: "{{item.cron_weekday | default(omit)}}"
+    day: "{{item.cron_day | default(omit)}}"
+    hour: "{{item.cron_hour | default(omit)}}"
+    minute: "{{item.cron_minute | default(omit)}}"
+    user: "{{item.cron_user | default(omit)}}"
+    job: "{{item.cron_job | default(omit)}}"
+    state: "{{item.cron_state | default(omit)}}"
+    cron_file: "{{item.cron_cron_file | default(omit)}}"
+    special_time: "{{item.cron_special_time | default(omit)}}"
+    backup: "{{item.cron_backup | default(omit)}}"
+    env: "{{item.cron_env | default(omit)}}"
+  loop: "{{cron_params}}"
+  become: true
+  
+...

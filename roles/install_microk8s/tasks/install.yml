@@ -1,0 +1,54 @@
+---
+- name: Make sure snapd is installed
+  apt:
+    name:
+      - snapd
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Install microk8s with option classic
+  snap:
+    name: microk8s
+    classic: yes
+    channel: "{{microk8s_snap_channel | default('1.22/stable',true)}}"
+  become: yes
+  notify: "Disable apiserver-kicker"
+  tags:
+  - k8s
+
+- name: appending the group microk8s
+  user:
+    name: "{{ansible_user_id}}"
+    groups: microk8s
+    append: yes
+  become: yes
+
+- name: Recursively change ownership of a directory
+  ansible.builtin.file:
+    path: "{{ansible_user_dir}}/.kube"
+    state: directory
+    recurse: yes
+    owner: "{{ansible_user_id}}"
+    group: "{{ansible_user_id}}"
+  become: yes
+
+- name: Enable Add-ons
+  shell: microk8s.enable {{item}}
+  environment:
+    LANG: en_US.UTF-8
+    LC_ALL: en_US.UTF-8
+  loop: "{{microk8s_addons}}"
+
+- name: Setup RBAC
+  shell: microk8s kubectl create {{item}}
+  register: rbac_result
+  ignore_errors: True
+  loop:
+    - "serviceaccount admin-user -n kube-system"
+    - "clusterrolebinding admin-user --clusterrole cluster-admin --serviceaccount kube-system:admin-user"
+  changed_when:
+    - 'rbac_result.rc == 0'
+    - '"already exists" not in rbac_result.stderr'
+
+...

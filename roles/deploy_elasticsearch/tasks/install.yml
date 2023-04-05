@@ -1,0 +1,24 @@
+---
+- name: add apt key for elk repository
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+  become: yes
+  when: elasticsearch_installed.rc != 0
+
+- name: add elk repofile
+  copy:
+    src: elk-7.x.list
+    dest: /etc/apt/sources.list.d/elk-7.x.list
+  become: yes
+  when: elasticsearch_installed.rc != 0
+
+- name: install or update elasticsearch to latest (it's safe for minor updates)
+  apt:
+    name: elasticsearch={{elasticsearch_version}}
+    update_cache: yes
+  become: yes
+  when: elasticsearch_installed.rc != 0
+  notify:
+  - restart elasticsearch
+...

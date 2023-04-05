@@ -1,0 +1,6 @@
+---
+nodejs_download_url: 'http://nodejs.org/dist/latest-v12.x/{{nodejs_version}}.tar.gz'
+nodejs_version: "node-v12.16.2-linux-x64"
+nodejs_install_dir: "/opt"
+
+...

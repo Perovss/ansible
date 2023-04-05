@@ -1,0 +1,8 @@
+---
+dependencies:
+
+  - role: manage_python_packages
+    vars:
+      pyenv_virtualenv: ansible_python3
+      python_packages:
+        - psycopg2-binary

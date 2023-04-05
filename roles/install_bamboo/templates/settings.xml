@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+    <mirrors>
+        <mirror>
+            <id>nexus</id>
+            <url>https://nexus.tourmachine.tech/repository/maven-public/</url>
+            <mirrorOf>*</mirrorOf>
+        </mirror>
+    </mirrors>
+    <servers>
+        <server>
+            <id>nexus</id>
+            <username>{{maven_nexus_user}}</username>
+            <password>{{maven_nexus_password}}</password>
+        </server>
+    </servers>
+</settings>

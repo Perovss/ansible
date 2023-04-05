@@ -1,0 +1,5 @@
+---
+- import_tasks: deploy_configs.yml
+
+- import_tasks: setup_auth.yml
+...

@@ -1,0 +1,20 @@
+cluster.name: logging
+node.roles: [{{node_roles}}]
+
+# Path to directory where to store the data (separate multiple locations by comma):
+path.data: /var/lib/elasticsearch
+
+# Path to log files:
+path.logs: /var/log/elasticsearch
+
+bootstrap.memory_lock: true
+network.host: 0.0.0.0
+discovery.seed_hosts: {{seed_hosts}}
+cluster.initial_master_nodes: [{{(master_node is defined) | ternary(master_node, "elasticsearch1")}}]
+xpack.license.self_generated.type: basic
+xpack.security.enabled: false
+thread_pool:
+  write:
+    size: 9
+  search:
+    size: 13

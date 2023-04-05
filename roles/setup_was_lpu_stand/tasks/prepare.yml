@@ -1,0 +1,7 @@
+---
+- name: Clone configs repo
+  git:
+    repo: 'git@bitbucket.org:softmachinespb/was-infra.git'
+    dest: "{{temp_dir_git}}"
+    accept_hostkey: yes
+...

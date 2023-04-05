@@ -1,0 +1,95 @@
+---
+
+- name: Handle the error if var file current release not exist
+  block:
+    - name: Includeing OS specific variables for current release 
+      include_vars: "{{ansible_distribution | lower}}{{ansible_distribution_major_version}}.yml"
+  rescue:
+    - name: Includeing OS specific variables for os family
+      include_vars: "{{ansible_os_family | lower}}.yml"
+
+- name: install basic software
+  include_role:
+    name: install_packages
+
+- name: create groups
+  include_role:
+    name: group
+
+- name: create users 
+  include_role:
+    name: user
+
+- name: adding ssh key
+  include_role:
+    name: authorized_key
+
+- name: make sudo nopasswd
+  include_role:
+    name: sudo_config
+  tags: sudo
+
+- name: setup bashrc
+  include_role:
+    name: bashrc
+
+- name: install pyenv
+  include_role:
+    name: install_pyenv
+
+- name: install python & virtenv in pyenv
+  include_role:
+    name: manage_pyenv
+
+- name: disable ssh root access & users passw auth
+  include_role:
+    name: sshd_config
+  tags: sshd
+
+- name: disable ipv6
+  include_role:
+    name: set_sysctl
+  vars:
+    sysctl_params:
+      - sysctl_name: "net.ipv6.conf.all.disable_ipv6"
+        sysctl_value: "1"
+      - sysctl_name: "net.ipv6.conf.default.disable_ipv6"
+        sysctl_value: "1"
+      - sysctl_name: "net.ipv6.conf.lo.disable_ipv6"
+        sysctl_value: "1"
+  tags: ipv6
+
+- name: create swapfile
+  include_role:
+    name: create_swapfile
+  tags: swap
+
+- name: Disable SELinux
+  selinux:
+    state: disabled
+  become: yes
+  tags: selinux
+  when: ansible_facts['os_family']|lower == 'redhat'
+
+- name: Set timezone
+  timezone:
+    name: Europe/Moscow
+  become: yes
+  tags: timezone
+
+- name: setup unattended upgrades
+  include_role:
+    name: unattended_upgrades
+  tags: updates
+
+- name: setup monitoring
+  import_role:
+    name: deploy_node_exporter
+  tags: node_exporter
+
+- name: setup logging
+  import_role:
+    name: install_filebeat
+  tags: filebeat
+
+...

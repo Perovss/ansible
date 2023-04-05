@@ -1,0 +1,10 @@
+---
+- name: setup repository
+  template:
+    src: sources.list.j2
+    dest: /etc/apt/sources.list
+    owner: root
+    group: root
+    mode: 0644
+  become: true  
+...

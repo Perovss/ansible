@@ -1,0 +1,12 @@
+---
+- hosts: influxdb
+  tasks:
+
+    - name: install influx
+      import_role:
+        name: install_influxdb
+
+    - name: create perf users & adding ssh key
+      import_role:
+        name: users_manage
+...

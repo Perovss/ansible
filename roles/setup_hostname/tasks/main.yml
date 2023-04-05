@@ -1,0 +1,14 @@
+---
+- name: Set hostname
+  hostname:
+      name: "{{inventory_hostname | replace('_','-')}}"
+  become: yes
+
+- name: generate file hosts
+  copy:
+   dest: /etc/hosts
+   content: |
+     127.0.0.1   localhost
+     127.0.1.1   {{inventory_hostname | replace('_','-') }}   {{ inventory_hostname_short | replace('_','-')}}
+  become: yes
+...

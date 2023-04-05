@@ -1,0 +1,27 @@
+---
+- name: install sudo package
+  package:
+    name: sudo
+    state: present
+  become: true
+
+- name: including OS specific variables
+  include_vars: "{{ansible_os_family | lower}}.yml"
+
+- name: make sudo NOPASSWD for user in group {{default_group_with_sudo_perm}}
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%{{default_group_with_sudo_perm}} ALL='
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    validate: /usr/sbin/visudo -cf %s
+  become: true
+
+- name: enable SSH forwarding for sudo
+  lineinfile:
+    dest: /etc/sudoers
+    insertafter: '^#?\s*Defaults\s+env_keep\b'
+    line: 'Defaults    env_keep += "SSH_AUTH_SOCK"'
+    validate: /usr/sbin/visudo -cf %s    
+  become: true    
+...

@@ -1,0 +1,12 @@
+---
+
+- name: node_exporter is running & should start on boot
+  systemd:
+    name: node-exporter
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+  listen: "restart node_exporter"
+  become: yes
+
+...

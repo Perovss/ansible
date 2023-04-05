@@ -1,0 +1,28 @@
+global_defs {
+  notification_email {
+    {{keepalived_notification_email}}
+  }
+  notification_email_from admin@9sov.ru
+  smtp_server 127.0.0.1
+  smtp_connect_timeout 30
+  router_id {{keepalived_router_id}}
+}
+
+vrrp_instance VI_1 {
+  interface {{keepalived_interface}}
+  virtual_router_id {{keepalived_virtual_router_id}}
+  state {{keepalived_state}}
+  priority {{keepalived_priority}}
+  advert_int 1
+  garp_master_delay 1
+  garp_master_refresh 60
+  authentication {
+    auth_type PASS
+    auth_pass {{keepalived_auth_pass}}
+  }
+  virtual_ipaddress {
+    {{keepalived_virtual_ipaddress }} dev {{ keepalived_interface}}
+  }
+  notify_master /etc/keepalived/scripts/master.sh
+  notify_backup /etc/keepalived/scripts/backup.sh
+}

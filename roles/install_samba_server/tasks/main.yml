@@ -1,0 +1,17 @@
+---
+- name: create samba dir
+  file:
+      path: "{{samba_dir}}"
+      state: directory
+      mode: 0755
+      owner: nobody
+      group: nogroup
+  become: true
+
+- name: configure samba server
+  template:
+    src: smb.conf.j2
+    dest: /etc/samba/smb.conf
+  become: true
+  notify: restart samba
+...

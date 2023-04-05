@@ -1,0 +1,6 @@
+---
+unattended_upgrades_packages:
+- unattended-upgrades
+- apt-listchanges
+- apticron
+...

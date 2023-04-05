@@ -1,0 +1,40 @@
+---
+- name: Download build artifact from Jenkins
+  get_url:
+    url: "{{jenkins_artifact_url}}"
+    dest: /tmp/
+    username: "{{jenkins_api_username}}"
+    password: "{{jenkins_api_password}}"
+    force_basic_auth: yes
+
+- name: Stop service tomcat
+  service:
+    name: tomcat
+    state: stopped
+  become: true
+
+- name: cleanup work dir
+  command: 'rm -rf {{server_install_dir}}*'
+
+- name: Deploy artifact
+  unarchive:
+    src: "/tmp/{{jenkins_artifact_url | urlsplit('path') | basename}}"
+    dest: '{{server_install_dir}}/webapps/'
+    remote_src: yes
+  become: true
+
+- name: Deploy app configs
+  copy:
+    src: '{{temp_dir_git}}/test-lpu/config/app_conf/'
+    dest: '{{server_install_dir}}/shared/'
+    owner: "{{tomcat_user}}"
+    group: "{{tomcat_user}}"
+    remote_src: yes
+  become: yes
+
+- name: Start service tomcat
+  service:
+    name: tomcat
+    state: started
+  become: true
+...

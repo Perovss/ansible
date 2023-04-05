@@ -1,0 +1,42 @@
+---
+- hosts: cppk-prod-web.soft-machine.tech
+  tasks:
+
+    - name: make sudo nopasswd
+      import_role:
+        name: sudo_config
+      tags: sudo
+
+    - name: setup unattended upgrades
+      import_role:
+        name: unattended_upgrades
+      tags: updates
+
+    - name: deploy node_exporter
+      import_role:
+        name: deploy_node_exporter
+      tags: node_exporter
+
+    - name: deploy nginx_exporter
+      import_role:
+        name: nginx_exporter
+      tags: nginx_exporter
+
+    - name: open exporters port.
+      iptables:
+        action: insert
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{item}}"
+        jump: ACCEPT
+      loop:
+        - 9100
+        - 9113
+      become: true
+      tags: iptables
+
+    - name: disable ssh root access & users passw auth
+      import_role:
+        name: sshd_config
+      tags: sshd
+...

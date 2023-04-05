@@ -1,0 +1,55 @@
+---
+- hosts: nest.soft-machine.tech
+  tasks:
+
+    - name: set hostname
+      import_role:
+        name: setup_hostname
+      tags: hostname
+
+    - name: install ansible dependency for docker module in pyenv
+      import_role:
+        name: manage_python_packages
+      vars:
+        pyenv_virtualenv: ansible_python3
+        python_packages:
+          - docker
+          - PyYAML
+          - docker-compose
+      tags: pyenv
+
+    - name: install docker engine
+      import_role:
+        name: install_docker
+      tags: docker
+
+    - name: install docker-compose in local pip for all users
+      import_role:
+        name: manage_local_pip
+      vars:
+        local_pip_packages:
+        - package_name: docker-compose
+
+    - name: login in private registry
+      import_role:
+        name: docker_login
+      tags: docker_login
+
+    - name: deploy cadvisor
+      import_role:
+        name: deploy_docker
+      vars:
+        docker_container_params:
+          - docker_container_name: "cadvisor"
+            docker_container_image: "google/cadvisor:v0.33.0"
+            docker_container_volumes:
+              - /:/rootfs:ro
+              - /var/run:/var/run:rw
+              - /sys:/sys:ro
+              - /var/lib/docker/:/var/lib/docker:ro
+            docker_container_ports:
+              - "8888:8080"
+            docker_container_restart_policy: always
+      tags: cadvisor
+
+...

@@ -1,0 +1,12 @@
+---
+- name: save iptables rules
+  shell: netfilter-persistent save
+  become: true
+  
+- name: restart rsync
+  systemd:
+    name: rsync
+    enabled: yes    
+    state: restarted
+  become: true
+...

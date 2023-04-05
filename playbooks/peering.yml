@@ -1,0 +1,19 @@
+---
+- hosts: peering
+  tasks:
+
+    - name: make peering
+      import_role:        
+        name: openvpn_p2p
+      tags: p2p
+
+    - name: make dinamic routing
+      import_role:
+        name: quagga
+      tags: ospf        
+
+    - name: Make fireWall
+      import_role:
+        name: iptables
+      tags: iptables
+...

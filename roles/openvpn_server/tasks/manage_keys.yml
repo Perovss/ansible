@@ -1,0 +1,28 @@
+---
+- name: Create dir for easyrsa
+  file:
+    path: "{{easyrsa_dir}}"
+    state: directory
+    mode: '0755'
+  become: true
+
+- block:
+  - name: manage keys
+    import_role:
+      name: easyrsa
+    vars:
+      easyrsa_dest: "{{easyrsa_dir}}"
+      easyrsa_clients: "{{clients_names}}"
+      easyrsa_revoke_clients: "{{revoke_clients}}"
+
+  - name:  Synchronization pki infra
+    synchronize:
+      src: "{{easyrsa_dir}}/"
+      dest: "rsync://{{item }}/{{ easyrsa_dir | dirname | basename}}"
+    loop: "{{groups[target_group]}}"
+    delegate_to: "{{inventory_hostname}}"
+    when: inventory_hostname != item
+
+  run_once: true
+  become: true
+...

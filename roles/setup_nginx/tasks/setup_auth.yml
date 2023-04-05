@@ -1,0 +1,27 @@
+---
+- name: check auth_basic
+  command: grep -iRi 'auth_basic' /etc/nginx/conf.d/
+  ignore_errors: true
+  register: auth_basic_result
+  changed_when: false
+
+- block:
+    - name: Set python env
+      set_fact:
+        ansible_python_interpreter: "{{ansible_env.HOME}}/.pyenv/shims/python"
+
+    - name: create basic auth users
+      htpasswd:
+        path: /etc/nginx/.htpasswd
+        name: "{{item.basic_auth_username}}"
+        password: "{{item.basic_auth_password}}"
+        owner: www-data
+        group: www-data
+        mode: 0644
+      loop: "{{basic_auth_users}}"
+      become: yes
+      notify:
+       - restart nginx
+  when: auth_basic_result.rc == 0
+  become: true
+...

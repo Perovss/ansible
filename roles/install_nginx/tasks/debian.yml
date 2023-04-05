@@ -1,0 +1,29 @@
+---
+- name: Add an Apt signing key
+  apt_key:
+    id: ABF5BD827BD9BF62
+    url: https://nginx.org/keys/nginx_signing.key
+    state: present
+  become: true
+
+- name: dependency packages
+  apt:
+    name: "{{dependency_packages}}"
+    state: "{{apt_state}}"
+    update_cache: "{{apt_update_cache}}"
+  become: true
+
+- name: Add nginx repository for debian
+  apt_repository:
+    repo: "{{apt_repository_repo}}"
+    state: "{{apt_repository_state}}"
+    filename: nginx
+  become: true
+
+- name: install nginx
+  apt:
+    name: nginx
+    state: "{{apt_state}}"
+    update_cache: "{{apt_update_cache}}"
+  become: true
+...

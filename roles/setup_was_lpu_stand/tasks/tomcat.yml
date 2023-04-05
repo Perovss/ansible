@@ -1,0 +1,98 @@
+---
+- name: ensure tomcat user exist
+  user:
+    name: "{{tomcat_user}}"
+    state: present
+    groups:
+      - sudo
+  become: true
+
+- name: Download Apache Tomcat
+  get_url:
+    url: "{{tomcat_download_url}}"
+    dest: /tmp/
+    username: "{{nexus_user}}"
+    password: "{{nexus_password}}"
+
+- name: Create a directory if it does not exist
+  file:
+    path: "{{tomcat_install_dir}}"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Unarchive Apache Tomcat
+  unarchive:
+    src: '/tmp/{{tomcat_download_url | basename}}'
+    dest: "{{tomcat_install_dir}}"
+    remote_src: yes
+  become: true
+
+- name: Change file ownership, group and permissions
+  file:
+    path: '{{tomcat_install_dir}}'
+    owner: "{{tomcat_user}}"
+    group: "{{tomcat_user}}"
+    mode: '0755'
+    recurse: yes
+  become: true
+
+- name: Create dir catalina_base
+  file:
+    path: '{{tomcat_install_dir }}/catalina_base/{{ item}}'
+    owner: "{{tomcat_user}}"
+    group: "{{tomcat_user}}"
+    mode: '0755'
+    state: directory
+  loop:
+    - bin
+    - con
+    - lib
+    - logs
+    - shared
+    - temp
+    - webapps
+    - work
+  become: true
+
+- name: Create a symbolic link
+  file:
+    src: '{{tomcat_install_dir }}/{{ (tomcat_download_url | basename | splitext)[0]}}'
+    dest: '{{tomcat_install_dir}}/tomcat'
+    owner: "{{tomcat_user}}"
+    group: "{{tomcat_user}}"
+    mode: '0777'
+    state: link
+  become: true
+
+- name: Deploy catalina configs
+  copy:
+    src: '{{temp_dir_git}}/test-lpu/config/catalina_conf/'
+    dest: '{{tomcat_install_dir}}/catalina_base/conf'
+    owner: "{{tomcat_user}}"
+    group: "{{tomcat_user}}"
+    remote_src: yes
+  become: yes
+
+- name: Deploy catalina setenvs
+  copy:
+    src: '{{temp_dir_git}}/test-lpu/config/catalina_bin/'
+    dest: '{{tomcat_install_dir}}/catalina_base/bin/'
+    owner: "{{tomcat_user}}"
+    group: "{{tomcat_user}}"
+    remote_src: yes
+  become: yes
+
+- name: Create a init script for tomcat
+  copy:
+    src: init.d/tomcat
+    dest: /etc/init.d/tomcat
+    mode: '0755'
+  become: true
+
+- name: Enable & Start service tomcat
+  service:
+    name: tomcat
+    state: started
+  become: true
+...

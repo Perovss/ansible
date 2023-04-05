@@ -1,0 +1,52 @@
+---
+- import_tasks: sysctl.yml
+  tags: sysctl
+
+- import_tasks: install.yml
+  tags: packages
+
+- import_tasks: set_fact.yml
+  when: openvpn_dev == 'tap'
+  tags: set_fact
+
+- import_tasks: network.yml
+  when: openvpn_dev == 'tap'
+  tags: network
+
+- import_tasks: iptables.yml
+  tags: iptables
+
+- name: setup rsync server
+  import_role:
+    name: setup_rsync
+  vars:
+    rsync_dirs: 
+    - "{{easyrsa_dir}}"
+  tags: dependency
+
+- name: We need force run handlers rsync role
+  meta: flush_handlers
+
+- import_tasks: manage_keys.yml
+  tags: client
+
+- name: manual restart openvpn after revoke cert
+  systemd:
+    name: openvpn-server@{{openvpn_connect_name}}
+    enabled: yes
+    state: restarted
+  become: true
+  when: revoke_clients is defined and revoke_clients |length > 0
+  tags: client
+  
+- import_tasks: setup_server.yml
+  tags: server
+
+- include_tasks: setup_client.yml
+  loop: "{{clients_names}}"
+  loop_control:
+      loop_var: item_names 
+  when: | 
+    clients_names is defined and clients_names |length > 0
+  tags: client
+...

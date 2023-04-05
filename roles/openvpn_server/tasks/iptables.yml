@@ -1,0 +1,10 @@
+---
+- name: Allow incoming openvpn.
+  iptables:
+    chain: INPUT
+    protocol: "{{openvpn_proto}}"
+    destination_port: "{{openvpn_port}}"
+    jump: ACCEPT
+  notify: save iptables rules
+  become: true
+...

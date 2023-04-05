@@ -1,0 +1,52 @@
+---
+- name: check to see if node_exporter is already installed
+  command: '{{ node_exporter_path }} --version'
+  ignore_errors: true
+  register: node_exporter_is_installed
+  changed_when: false
+
+- block:
+    - name: create non privileged user
+      user:
+        name: node_exporter
+        shell: /sbin/nologin
+        create_home: no
+
+    - name:  Download & Unarchive compiled binary node_exporter
+      unarchive:
+        src: 'https://github.com/prometheus/node_exporter/releases/download/v{{node_exporter_version}}/node_exporter-{{node_exporter_version}}.linux-{{go_arch}}.tar.gz'
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Copy binary to path
+      copy:
+        src: '/tmp/node_exporter-{{ node_exporter_version }}.linux-{{go_arch}}/node_exporter'
+        dest: "{{ node_exporter_path }}"
+        mode: '0751'
+        remote_src: yes
+      notify: restart node_exporter
+
+  when: node_exporter_is_installed.rc != 0
+  become: true
+
+- name: Set a fqdn
+  ansible.builtin.hostname:
+    name: "{{inventory_hostname}}"
+  become: true
+
+- name: deploy consul-service.sh script
+  ansible.builtin.copy:
+    src: consul-service.sh
+    dest: /usr/local/bin/consul-service
+    owner: node_exporter
+    group: node_exporter
+    mode: 0755
+  become: true
+
+- name: create systemd unit
+  template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node-exporter.service
+  notify: restart node_exporter
+  become: true
+...

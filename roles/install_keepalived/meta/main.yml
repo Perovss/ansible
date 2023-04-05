@@ -1,0 +1,19 @@
+---
+dependencies:
+
+  - role: gpg_manage
+    vars:
+      apt_key_id: 532A4A026239FC3BAEB7869C60D954A11017341E
+      apt_keyserver: keyserver.ubuntu.com
+
+  - role: repo_manage
+    vars:
+      apt_repository_repo: ppa:hnakamur/keepalived
+      apt_repository_filename: keepalived
+
+  - role: soft_manage
+    vars:
+      apt_list:
+        - keepalived=1:2.0.13-1ubuntu1ppa1~18.04.1
+
+...

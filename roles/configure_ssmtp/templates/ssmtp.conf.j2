@@ -1,0 +1,12 @@
+root=postmaster
+hostname={{ansible_hostname}}
+authuser={{authuser }}@{{ domain}}
+authpass={{authpass}}
+AuthMethod=LOGIN
+mailhub={{smtp_server }}:{{ smtp_port}}
+rewriteDomain={{domain}}
+FromLineOverride=NO
+UseTLS=YES
+{% if ansible_os_family == "RedHat" %}
+TLS_CA_File=/etc/pki/tls/certs/ca-bundle.crt
+{% endif %}

@@ -1,0 +1,25 @@
+{% if openvpn_p2p_proto is defined and openvpn_p2p_proto | length %}
+proto {{openvpn_p2p_proto}}
+{% endif %}
+
+{% if openvpn_p2p_port is defined and openvpn_p2p_port | length %}
+port {{openvpn_p2p_port}}
+{% endif %}
+
+remote {{side_b.host}}
+dev tun_{{(side_b.name.split('-'))[0]}}
+ifconfig 172.{{first_octet}}.{{second_octet}}.1 172.{{first_octet}}.{{second_octet}}.2
+status /var/log/openvpn/{{side_b.name}}-status.log
+log /var/log/openvpn/{{side_b.name}}.log
+
+compress lz4-v2
+keepalive 10 60
+persist-key
+persist-tun
+user nobody
+group nogroup
+verb 3
+secret [inline] 
+<secret>
+{{openvpn_p2p_secret.stdout}}
+</secret>

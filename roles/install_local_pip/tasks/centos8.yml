@@ -1,0 +1,13 @@
+---
+- name: install pip
+  dnf:
+    name: "{{packages}}"
+    state: present
+    update_cache: yes
+  register: dnf_result
+  until: dnf_result is not failed
+  retries: 3
+  delay: 10
+  ignore_errors: yes
+  become: true
+...

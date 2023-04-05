@@ -1,0 +1,48 @@
+---
+- name: Includeing OS specific variables
+  include_vars: "{{ansible_os_family | lower}}.yml"
+
+- name: Installing packages
+  package:
+    name: "{{sendmail_packages}}"
+    state: present
+  become: true
+
+- name: Create folder
+  file:
+    path: "{{sendmail_authinfo_dir}}"
+    state: directory
+  become: true
+
+- name: configure auth
+  blockinfile:
+    path: '{{sendmail_authinfo_dir }}/{{ sendmail_authinfo_file}}'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    create: yes
+    block: |
+      AuthInfo: "U:{{sendmail_auth_user }}" "I:{{ sendmail_auth_login }}" "P:{{ sendmail_auth_password}}"
+  become: true
+  notify: restart sendmail
+
+- name: configure sendmail
+  blockinfile:
+    path: /etc/mail/sendmail.mc
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      # Adding config for gmail #
+      define(`SMART_HOST',`[smtp.gmail.com]')dnl
+      define(`RELAY_MAILER_ARGS', `TCP $h {{sendmail_smart_host_port}}')dnl
+      define(`ESMTP_MAILER_ARGS', `TCP $h {{sendmail_smart_host_port}}')dnl
+      define(`confAUTH_OPTIONS', `A p')dnl
+      TRUST_AUTH_MECH(`EXTERNAL DIGEST-MD5 CRAM-MD5 LOGIN PLAIN')dnl
+      define(`confAUTH_MECHANISMS', `EXTERNAL GSSAPI DIGEST-MD5 CRAM-MD5 LOGIN PLAIN')dnl
+      FEATURE(`authinfo',`hash -o {{sendmail_authinfo_dir }}/{{ sendmail_authinfo_file}}.db')dnl
+      # End config for gmail #
+  become: true
+  notify: restart sendmail
+
+- name: Hash sendmail authorization file
+  shell: 'makemap hash {{sendmail_authinfo_dir }}/{{ sendmail_authinfo_file }}.db < {{ sendmail_authinfo_dir }}/{{ sendmail_authinfo_file}}'
+  become: true
+  notify: restart sendmail
+...

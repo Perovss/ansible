@@ -1,0 +1,13 @@
+---
+- name: Package Install
+  apt:
+    name: "{{packages_list}}"
+    state: "{{apt_state | default('present',true)}}"
+    update_cache: "{{apt_update_cache | default('yes',true)}}"
+  register: apt_result
+  until: apt_result is not failed
+  retries: 3
+  delay: 30
+  ignore_errors: yes
+  become: true
+...

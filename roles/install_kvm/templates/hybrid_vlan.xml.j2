@@ -1,0 +1,12 @@
+<network>
+<name>ovs-{{ovs_bridge}}</name>
+<forward mode='bridge'/>
+<bridge name='{{ovs_bridge}}'/>
+<vlan trunk='yes'>
+<tag id='1' nativeMode='untagged'/>
+{% for tagged_vlan in tagged_vlans %}
+<tag id='{{tagged_vlan}}'/>
+{% endfor %}
+</vlan>
+<virtualport type='openvswitch'/>
+</network>

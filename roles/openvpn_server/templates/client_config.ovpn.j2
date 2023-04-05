@@ -1,0 +1,31 @@
+{% for host in groups[target_group] -%}
+remote {{host }} {{ openvpn_port}}
+{% endfor %}
+remote-random
+client
+dev {{openvpn_dev}}_{{mail_preffix}}
+proto {{openvpn_proto}}
+persist-key
+persist-tun
+nobind
+{{openvpn_comp}}
+verb 2
+cipher {{openvpn_cipher}}
+remote-cert-tls server
+# Сертификаты и ключи
+ca [inline]
+cert [inline]
+key [inline]
+tls-auth [inline] 1
+<ca>
+{{openvpn_ca.stdout}}
+</ca>
+<cert>
+{{openvpn_client_cert.stdout}}
+</cert>
+<key>
+{{openvpn_client_key.stdout}}
+</key>
+<tls-auth>
+{{openvpn_tls_auth.stdout}}
+</tls-auth>

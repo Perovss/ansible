@@ -1,0 +1,19 @@
+---
+- name: check to see if filebeat is already installed
+  command: "/usr/bin/filebeat version"
+  ignore_errors: true
+  register: filebeat_is_installed
+  changed_when: false
+
+- name: deploy filebeat config
+  template:
+    src: 'filebeat.yml.j2'
+    dest: '/etc/filebeat/filebeat.yml'
+  become: yes
+  notify: restart filebeat
+
+- name: Enable the module
+  command: /usr/bin/filebeat modules enable nginx
+  become: yes
+  when: nginxinstalled.rc == 0
+...

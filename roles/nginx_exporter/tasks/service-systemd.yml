@@ -1,0 +1,11 @@
+---
+- name: systemd service
+  become: true
+  template:
+    src: "nginx_exporter.systemd.j2"
+    dest: "/lib/systemd/system/nginx_exporter.service"
+    owner: root
+    group: root
+    mode: "u=rw,go=r"
+  notify:
+    - restart nginx_exporter

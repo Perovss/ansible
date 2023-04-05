@@ -1,0 +1,14 @@
+---
+- hosts: all
+  tasks:
+
+
+#    - name: change dns
+#      import_role:
+#        name: setup_dns
+
+    - name: install node_exporter
+      import_role:
+        name: deploy_node_exporter
+      tags: node_exporter
+...

@@ -1,0 +1,102 @@
+---
+- hosts: app2
+  vars:
+    java_packages:
+      - java-1.8.0-openjdk.x86_64
+      - java-1.8.0-openjdk-devel.x86_64
+      - java-1.8.0-openjdk-headless.x86_64
+  tasks:
+
+    - name: install docker-compose in pyenv
+      import_role:
+        name: manage_python_packages
+      vars:
+        pyenv_virtualenv: ansible_python3
+        python_packages:
+          - docker
+          - PyYAML
+          - docker-compose
+
+    - name: install docker
+      import_role:
+        name: install_docker
+
+    - name: install docker-compose in local pip
+      import_role:
+        name: manage_local_pip
+      vars:
+        local_pip_packages:
+        - package_name: docker-compose        
+
+    - name: install nginx
+      import_role:
+        name: install_nginx
+      tags: nginx  
+
+    - name: java Install for centos
+      yum:
+        name: "{{java_packages}}"
+        state: present
+        update_cache: yes
+      become: true
+      tags: java
+
+    - name: install activemq
+      import_role:
+        name: install_activemq
+
+    - name: install soapui
+      import_role:
+        name: install_soapui
+
+    - name: install libreoffice
+      import_role:
+        name: install_libreoffice
+      tags: libreoffice
+
+    - name: Create project directory
+      file:
+        path: "{{item}}"
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: '0755'
+      loop:
+        - /opt/ftp/sogazb2b_ftp/ERROR
+        - /opt/ftp/sogazb2b_ftp/PROCEEDED
+        - /opt/ftp/sogazb2b_ftp/IGNORED
+        - /opt/ftp/sogazb2b_ftp/INPUT
+        - /opt/www/b2b/client
+        - /opt/www/b2b/html
+        - /opt/www
+        - /opt/sogaz
+      become: true
+      tags: directory
+
+    - name: fast fix
+      file:
+        path: "{{item}}"
+        state: directory
+        owner: tomcat
+        group: tomcat
+        mode: '0755'
+      loop:
+        - /opt/sogaz/bin
+        - /opt/sogaz/conf
+        - /opt/sogaz/logs
+      become: true
+      tags: directory
+
+    - name: make robot.txt file
+      copy:
+        content: |
+                  User-agent: *
+                  Disallow: /
+        dest: /opt/www/b2b/robots.txt
+      become: true
+      tags: robots
+
+    - name: create perf users & adding ssh key
+      import_role:
+        name: users_manage
+...

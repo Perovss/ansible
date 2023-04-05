@@ -1,0 +1,21 @@
+---
+- name: Add nginx repository for centos
+  yum_repository:
+    name: nginx
+    description: nginx YUM repo
+    baseurl: http://nginx.org/packages/mainline/rhel/7/$basearch/
+  become: true
+
+- name: Import nginx GPG key for centos
+  rpm_key:
+    key: "{{nginx_repo_gpg_key_url}}"
+    state: present
+  become: true
+
+- name: nginx Install for centos
+  yum:
+    name: nginx
+    state: "{{yum_state}}"
+    update_cache: "{{yum_update_cache}}"
+  become: true
+...

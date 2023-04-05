@@ -1,0 +1,12 @@
+---
+dependencies:
+
+  - role: install_nginx
+
+  - role: manage_python_packages
+    vars:
+      pyenv_virtualenv: ansible_python3
+      python_packages:
+        - passlib
+
+...

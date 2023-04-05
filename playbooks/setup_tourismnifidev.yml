@@ -1,0 +1,11 @@
+---
+- hosts: tourismnifidev.soft-machine.tech
+  tasks:
+
+    - name: install openjdk
+      import_role:
+        name: install_openjdk
+      vars:
+        openjdk_version: openjdk11  
+     
+...

@@ -1,0 +1,13 @@
+---
+- name: Check if elasticsearch is installed
+  command: ls -l /usr/share/elasticsearch/bin/elasticsearch
+  ignore_errors: true
+  changed_when: false
+  register: elasticsearch_installed
+
+- name: Check if elasticsearch_exporter is installed
+  command: ls -l /usr/bin/elasticsearch_exporter
+  ignore_errors: true
+  changed_when: false
+  register: elasticsearch_exporter_installed
+...

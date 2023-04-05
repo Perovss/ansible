@@ -1,0 +1,16 @@
+---
+
+#users_params:
+#  - user_name: "george"
+#    user_shell: "/bin/bash"
+#    user_groups: "sudo"
+#    authorized_key_name: "george"
+#    authorized_key_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDruHTdw0TWf6Jntjd4axCvfEdMV0+oCdeMZxhJPPlA3yz4Sip9MvmbttlXSouZ+6wdCh3NtfxvmbYm1T+Zi4567RZ3Yyqoq4AMNRQ8LavJ2DXLNGwq/+zH2LiEKVTHu+cVi5a5NnGCcZmgAey+t6NdAW7mjcBAx6s4DJvrT54sbGmAbsMfFN4kDD9GslEXW448D9olJasmZZJbcuPV4gBclT1q3xPzn35jpbvWuJ+EJrmPhvB1+mcbV69zTkTCz2ROw1iQLD/rt7yef1V3EGTInqHamYSsfGk2OaveHhg/8DTd4vKckr15a3qk8AAYzPsEqdapff2sBJ/nhG0nz9juavAxWMxd+azf6ErQTtqwtofUmBsOXL9AY/RIF965useMhNCFp+9TObnhpkRcP/UpJkWhzydg6PxH73Htbk1HQLz25cViV57XQ5VqHyaXTEvEsv+672fVCELYCRHSSGSQENfcobYY9uOWtbx8uIe6G37R9M+a+UkvUA/YC+kXmZGK4noZONmMg3D/wRRrHYDZ0VyVJyD2esAVKgYh7+fJEPGxSK4zYXaApw9P1AYBhH0upyYe/RHfIrBkZMnr0BNANyzE1HOrcoQwbrYpE+4NnWn60099VPUe2+uDrkEcmH3WEB58htZP7gJVjw+Mdd/LIawdzufj3c8NPglkHQJVJQ== george.kirillov@soft-machine.ru"
+#    authorized_key_exclusive: yes
+#    pyenvs:
+#      - { python_version: 3.9.4 , virtualenv: ansible }
+#    servers:
+#      - raspberrypi
+#
+
+...

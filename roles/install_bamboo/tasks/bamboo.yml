@@ -1,0 +1,97 @@
+---
+- name: Set binary folder
+  set_fact:
+    bamboo_master_binary_folder: "{{bamboo_master_application_folder }}/atlassian-bamboo-{{ bamboo_master_version}}"
+
+- name: Create app and data folders
+  file:
+    name: "{{item}}"
+    state: directory
+  loop:
+    - "{{bamboo_master_application_folder}}"
+    - "{{bamboo_master_data_folder}}"
+
+- name: create other users & adding ssh keys
+  include_role:
+    name: users_manage
+  vars:
+    users_settings:
+      - user_name: "{{bamboo_master_user}}"
+        user_shell: "/bin/bash"
+        user_home: "{{bamboo_master_data_folder}}"
+        user_groups: "sudo"
+        authorized_key_name: "{{bamboo_master_user}}"
+        authorized_key_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC66mebWovx96A32FlGBWslOGnxE4YkRHXDKe6k/cvpUfrbeGmkaEyORynobWTr5BIPB1gHJ9K6RMfvI49At1SfsJytYzrkzp7XxnmpBJyjjeHezYTk1iPObvfnjZwLDyi8kkjQFVDeFx0jvbI3gGzuQOi8hCpyH8iDGdTY24tY4aLNm4IxiQKLMfTMIGVdzGfkshNmQJ4pW6DbxkexZWkdROrVuxIOTjXJn6w8qOmDp1c6xaRHRHyOg324OaO+NRPeeM4nYf2F9MUu7R1zn7hGaelHRy/PQVcm9gst4RfjYQEn5bXmxIhuEp6VcC+UA3TS5Ed850xxETEsUcwot3c0RkfGxu1Ytl/j7ZxOEtpY1arHBa7RQ+OQnB4bLoUG0yunEz6bHwck4viAS+QlS/uWXIiSVdreYTgmq65thYUlnTE6kZYWkDrrrv4jY/bWDj8Hd/ab0qRMgFa2SxN6uhqo7eMZvNecz0pD8qNEns8UQybJhZIjya5jkDLwUBWbYTKKvePcFFCRD6cOQug8KVW/8vCKkUIiH/ttshdpZABgSNESNx0FiXKKzRu805qnJw/7QWEIM4mTDoznCz9tPhBqXH7UOWT+dq3IqycpkCfMbEQtRo8mHg3gEGq1tKVl+GPKaqfUG2BP7pf0GRa0WKNVAfMDX91PzmQszu+9LrZzeQ== jenkins-ssh@soft-machine.ru"
+        authorized_key_exclusive: yes
+
+- name: change owner
+  file:
+    name: "{{item}}"
+    state: directory
+    owner: "{{bamboo_master_user}}"
+    group: "{{bamboo_master_user}}"
+  loop:
+    - "{{bamboo_master_application_folder}}"
+    - "{{bamboo_master_data_folder}}"
+
+- name: Check for downgrade
+  fail:
+    msg: "Downgrades are not supported. Please set bamboo_master_version to higher or equal to {{ansible_local.bamboo.version }}. Current value is {{ bamboo_master_version}}"
+  when:
+    - ansible_local is defined
+    - ansible_local.bamboo is defined
+    - ansible_local.bamboo.version is defined
+    - bamboo_master_version is version(ansible_local.bamboo.version, '<')
+
+- name: Stop when upgrade
+  service:
+    name: bamboo
+    state: stopped
+  when:
+    - ansible_local is defined
+    - ansible_local.bamboo is defined
+    - ansible_local.bamboo.version is defined
+    - bamboo_master_version is version(ansible_local.bamboo.version, '>')
+  notify: restart bamboo
+
+- name: Download and unpack bamboo
+  unarchive:
+    src: "https://www.atlassian.com/software/bamboo/downloads/binary/atlassian-bamboo-{{bamboo_master_version}}.tar.gz"
+    dest: "{{bamboo_master_application_folder}}"
+    remote_src: True
+    # keep our modified, newer files instead of overriding from the tarball
+    keep_newer: yes
+    owner: "{{bamboo_master_user}}"
+    group: "{{bamboo_master_user}}"
+    creates: "{{bamboo_master_binary_folder}}"
+  changed_when: False
+
+- name: Include tomcat
+  include_tasks: tomcat.yml
+  when: bamboo_master_fqdn is defined or
+        bamboo_master_port is defined or
+        bamboo_master_https is defined
+
+- name: Install bamboo systemd unit script
+  template:
+    src: bamboo.service.j2
+    dest: /etc/systemd/system/bamboo.service
+    mode: 0744
+  when: ansible_service_mgr == 'systemd'
+  notify: restart bamboo
+
+- name: Set bamboo.home property variable
+  template:
+    src: bamboo-init.properties
+    dest: "{{bamboo_master_binary_folder}}/atlassian-bamboo/WEB-INF/classes/bamboo-init.properties"
+    owner: "{{bamboo_master_user}}"
+    group: "{{bamboo_master_user}}"
+  notify: restart bamboo
+
+- name: Ensure daemon is reloaded & enabled
+  systemd:
+    name: bamboo
+    daemon_reload: yes
+    enabled: yes
+  when: "ansible_service_mgr == 'systemd'"
+...

@@ -1,0 +1,47 @@
+[meta]
+  # Where the metadata/raft database is stored
+  dir = "/var/lib/influxdb/meta"
+
+[data]
+  # The directory where the TSM storage engine stores TSM files.
+  dir = "/var/lib/influxdb/data"
+
+  # The directory where the TSM storage engine stores WAL files.
+  wal-dir = "/var/lib/influxdb/wal"
+  series-id-set-cache-size = 100
+
+[http]
+  # Determines whether HTTP endpoint is enabled.
+   enabled = true
+
+  # The bind address used by the HTTP service.
+   bind-address = ":8086"
+
+  # Determines whether user authentication is enabled over HTTP/HTTPS.
+   auth-enabled = false
+
+  # Determines whether HTTP request logging is enabled.
+   log-enabled = true
+
+  # Determines whether detailed write logging is enabled.
+   write-tracing = true
+
+[logging]
+   format = "auto"
+   level = "info"
+
+[[graphite]]
+  # Determines whether the graphite endpoint is enabled.
+   enabled = true
+   database = "graphite"
+   retention-policy = ""
+   bind-address = ":2003"
+   protocol = "tcp"
+   consistency-level = "one"
+   separator = "."
+   udp-read-buffer = 0
+
+templates = [
+                "gatling.*.*.*.* measurement.simulation.request.status.field",
+                "gatling.*.users.*.* measurement.simulation.measurement.request.field"
+]

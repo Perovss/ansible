@@ -1,0 +1,7 @@
+---
+vsftpd_users: []
+vsftpd_config_template: ""
+vsftpd_htpasswd_path: /etc/vsftpwd
+vsftpd_guest_username: ftp
+vsftpd_local_root: /opt/ftp/
+...

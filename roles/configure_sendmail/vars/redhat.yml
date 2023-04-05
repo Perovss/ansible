@@ -1,0 +1,11 @@
+---
+sendmail_packages:
+  - sendmail
+  - sendmail-cf
+  - cyrus-sasl-gssapi
+  - cyrus-sasl-ldap
+  - cyrus-sasl-md5
+  - cyrus-sasl-plain
+  - cyrus-sasl-gs2
+  - cyrus-sasl-ntlm
+...

@@ -1,0 +1,8 @@
+---
+- name: restart vsftpd
+  systemd:
+    name: vsftpd
+    enabled: yes
+    state: restarted
+  become: true
+...

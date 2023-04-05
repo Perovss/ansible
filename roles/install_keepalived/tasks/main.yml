@@ -1,0 +1,27 @@
+---
+- name: Make keepalived config
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+  become: true
+  notify: restart keepalived
+
+- name: Create a scripts directory if it does not exist
+  file:
+    path: /etc/keepalived/scripts/
+    state: directory
+    mode: '0755'
+  become: true
+  notify: restart keepalived
+
+- name: Template keepalived scripts
+  template:
+    src: '{{item}}.sh.j2'
+    dest: '/etc/keepalived/scripts/{{item}}.sh'
+    mode: '0744'
+  become: true
+  loop:
+    - backup
+    - master
+  notify: restart keepalived
+...

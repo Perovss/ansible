@@ -1,0 +1,13 @@
+---
+- name: Includeing OS specific variables
+  include_vars: "{{ansible_os_family | lower}}.yml"
+
+- import_tasks: install.yml
+  tags: install
+
+- import_tasks: config.yml
+  tags: config
+
+- import_tasks: manage.yml
+  tags: manage    
+...

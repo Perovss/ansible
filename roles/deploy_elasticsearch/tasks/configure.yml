@@ -1,0 +1,46 @@
+---
+- name: add elk config [ elasticsearch.yml ]
+  template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+  become: yes
+  notify:
+  - restart elasticsearch
+
+- name: add elk jvm config [ jvm.options ]
+  template:
+    src: jvm.options.j2
+    dest: /etc/elasticsearch/jvm.options
+  become: yes
+  notify: 
+  - restart elasticsearch
+
+- name: set lockable memory to unlimited [create directory]
+  file:
+    dest: /etc/systemd/system/elasticsearch.service.d
+    state: directory
+  become: yes
+
+- name: set lockable memory to unlimited [copy file]
+  copy:
+    src: override.conf
+    dest: /etc/systemd/system/elasticsearch.service.d/override.conf
+  become: yes
+
+- name: enable and start elasticsearch
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    state: started
+    daemon_reload: yes
+  become: yes
+
+- name: restart elasticsearch
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    state: restarted
+  become: yes
+  # run only extra-vars is set
+  when: (trigger_restart_elasticsearch is defined) and (trigger_restart_elasticsearch == true)
+...

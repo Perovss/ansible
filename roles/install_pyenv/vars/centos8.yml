@@ -1,0 +1,16 @@
+---
+update_cache_command: 'dnf makecache'
+pyenv_dependency_packages:
+- zlib-devel
+- bzip2
+- bzip2-devel
+- readline-devel
+- sqlite
+- sqlite-devel
+- openssl-devel
+- xz
+- xz-devel
+- libffi-devel
+- git
+- gcc
+...

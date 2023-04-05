@@ -1,0 +1,12 @@
+---
+- name: Install maven
+  package:
+    name: maven
+    state: present    
+  register: package_result
+  until: package_result is not failed
+  retries: 5
+  delay: 30
+  ignore_errors: yes
+  become: true
+...

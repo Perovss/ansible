@@ -1,0 +1,139 @@
+---
+- block:
+
+  - name: DROP invalid traffik on all interfaces
+    iptables:
+      chain: "{{item.chain}}"
+      action: insert
+      rule_num: "{{item.rule_num}}"
+      ctstate: INVALID
+      jump: DROP
+    loop:
+      - { chain: 'INPUT', rule_num: '1' }
+      - { chain: 'OUTPUT', rule_num: '1' }
+      - { chain: 'FORWARD', rule_num: '1' }
+    notify: save iptables rules
+
+  - name: Allow INPUT all for lo
+    iptables:
+      chain:  INPUT
+      in_interface: lo
+      jump: ACCEPT
+    notify: save iptables rules
+
+  - name: Allow OUTPUT all for lo
+    iptables:
+      chain: OUTPUT
+      out_interface: lo
+      jump: ACCEPT
+    notify: save iptables rules
+
+  - name: Allow icmp
+    iptables:
+      chain: "{{item.chain}}"
+      action: insert
+      rule_num: "{{item.rule_num}}"
+      protocol: icmp
+      icmp_type: any
+      jump: ACCEPT
+    loop:
+      - { chain: 'INPUT', rule_num: '3' }
+      - { chain: 'OUTPUT', rule_num: '3' }
+      - { chain: 'FORWARD', rule_num: '2' }
+    notify: save iptables rules
+
+  - name: Allow related and established connections
+    iptables:
+      chain: "{{item.chain}}"
+      action: insert
+      rule_num: "{{item.rule_num}}"
+      ctstate: ESTABLISHED,RELATED
+      jump: ACCEPT
+    loop:
+      - { chain: 'INPUT', rule_num: '4' }
+      - { chain: 'OUTPUT', rule_num: '4' }
+      - { chain: 'FORWARD', rule_num: '3' }
+    notify: save iptables rules
+
+  - name: Allow all connections from local addresses not from the external interface.
+    iptables:
+      chain: INPUT
+      in_interface: '!{{ansible_default_ipv4.interface}}'
+      source: "{{item}}"
+      jump: ACCEPT
+    loop:
+      - 192.168.0.0/16
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+    notify: save iptables rules
+    when: ansible_default_ipv4.network | ipaddr('public')
+
+  - name: Allow all connections from local addresses.
+    iptables:
+      chain: INPUT
+      in_interface: '{{ansible_default_ipv4.interface}}'
+      source: "{{item}}"
+      jump: ACCEPT
+    loop:
+      - 192.168.0.0/16
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+    notify: save iptables rules
+    when: ansible_default_ipv4.network | ipaddr('private')
+
+  - name: Allow incoming from trusted points.
+    iptables:
+      chain: INPUT
+      in_interface: '{{ansible_default_ipv4.interface}}'
+      source: "{{item}}"
+      jump: ACCEPT
+    loop: "{{trusted_points}}"
+    notify: save iptables rules
+    when: trusted_points is defined and trusted_points |length > 0
+
+  - name: Allow incoming SSH.
+    iptables:
+      chain: INPUT
+      protocol: tcp
+      destination_port: '22'
+      ctstate: NEW
+      syn: match
+      jump: ACCEPT
+    notify: save iptables rules
+
+  - name: Allow incoming extra services.
+    iptables:
+      chain: INPUT
+      protocol: "{{item.protocol | default('tcp',true)}}"
+      destination_port: "{{item.port}}"
+      ctstate: NEW
+      syn: match
+      jump: ACCEPT
+    loop: "{{extra_services}}"
+    notify: save iptables rules
+    when: ansible_default_ipv4.network | ipaddr('public') and extra_services is defined
+
+  - name: DROP all incoming.
+    iptables:
+      chain: INPUT
+      jump: DROP
+    notify: save iptables rules
+
+  - name: Allow all OUTPUT on all interfaces.
+    iptables:
+      chain: OUTPUT
+      jump: ACCEPT
+    notify: save iptables rules
+
+  - name: SNAT for local network
+    iptables:
+      table: nat
+      chain: POSTROUTING
+      out_interface: "{{ansible_default_ipv4.interface}}"
+      source: "{{local_network }}/{{ (local_address + '/' + local_netmask) | ipaddr('prefix')}}"
+      to_source: "{{ansible_default_ipv4.address}}"
+      jump: SNAT
+    notify: save iptables rules
+    when: ansible_default_ipv4.network | ipaddr('public') and local_address is defined
+  become: true
+...

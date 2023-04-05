@@ -1,0 +1,16 @@
+---
+- name: Install
+  include: install.yml
+  tags:
+    - oracle_exporter_install
+
+- name: Configure
+  include: config.yml
+  tags:
+    - oracle_exporter_configure
+
+- name: Service
+  include: service.yml
+  tags:
+    - oracle_exporter_service
+...

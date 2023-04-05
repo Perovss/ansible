@@ -1,0 +1,23 @@
+---
+- name: install package
+  apt:
+    name:
+      - nfs-kernel-server    
+  become: true
+
+- name: create nfs dir
+  file:
+      path: "{{nfs_dir}}"
+      state: directory
+      mode: 0777
+      owner: nobody
+      group: nogroup
+  become: true
+
+- name: configure nfs server
+  template:
+    src: exports.j2
+    dest: /etc/exports
+  become: true
+  notify: restart nfs-kernel-server
+...

@@ -1,0 +1,65 @@
+---
+- hosts: openldap.soft-machine.tech
+  tasks:
+
+    - name: install basic software
+      import_role:
+        name: soft_manage
+      vars:
+        apt_list:
+          - slapd
+          - ldap-utils
+          - build-essential
+          - python3-dev
+          - python2.7-dev
+          - libldap2-dev
+          - libsasl2-dev
+          - python-tox
+          - lcov
+          - valgrind
+      tags: soft
+
+    - name: install pyenv
+      import_role:
+        name: manage_python_packages
+      vars:
+        pyenv_virtualenv: ansible_python3
+        python_packages:
+          - python-ldap
+      tags: pyenv
+
+    - name: Set python env
+      set_fact:
+        ansible_python_interpreter: "{{ansible_env.HOME}}/.pyenv/shims/python"
+      tags: ldap
+
+    - name: Make sure we have a parent entry for users
+      ldap_entry:
+        dn: ou=sogaz,dc=sogaz,dc=ru
+        objectClass: organizationalUnit
+        bind_dn: cn=admin,dc=sogaz,dc=ru
+        bind_pw: Qwerty123$
+      become: yes
+      tags: ldap
+
+    - name: Make sure we have an user
+      ldap_entry:
+        dn: "{{item.dn}}"
+        bind_dn: cn=admin,dc=sogaz,dc=ru
+        bind_pw: Qwerty123$
+        objectClass:
+          - simpleSecurityObject
+          - organizationalRole
+        attributes:
+          userPassword: "{{item.userPassword}}"
+      become: yes
+      tags: ldap
+      loop:
+        - { dn: 'cn=ldap_authorizer,ou=sogaz,dc=sogaz,dc=ru', userPassword: 'V9BBkVP4Z4R3rvsU' }
+        - { dn: 'cn=Churikov.Sergey,ou=sogaz,dc=sogaz,dc=ru', userPassword: 'nBeZ7j9L' }
+        - { dn: 'cn=Softmachine.User,ou=sogaz,dc=sogaz,dc=ru', userPassword: 'Q76Zpw8M' }
+        - { dn: 'cn=ajaxuser,ou=sogaz,dc=sogaz,dc=ru', userPassword: 'ajaxpass' }
+        - { dn: 'cn=ajaxuserss,ou=sogaz,dc=sogaz,dc=ru', userPassword: 'ajaxpassss' }
+        - { dn: 'cn=ajaxusersk,ou=sogaz,dc=sogaz,dc=ru', userPassword: 'ajaxpasssk' }
+
+...

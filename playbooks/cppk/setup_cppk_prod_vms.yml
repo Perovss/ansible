@@ -1,0 +1,34 @@
+---
+- hosts: production_cppk
+  tasks:
+
+    - name: make sudo nopasswd
+      import_role:
+        name: sudo_config
+      tags: sudo
+
+    - name: setup unattended upgrades
+      import_role:
+        name: unattended_upgrades
+      tags: updates
+
+    - name: deploy node_exporter
+      import_role:
+        name: deploy_node_exporter
+      tags: node_exporter
+
+    - name: open node exporter port.
+      iptables:
+        action: insert
+        chain: INPUT
+        protocol: tcp
+        destination_port: "9100"
+        jump: ACCEPT
+      become: true
+      tags: iptables
+
+    - name: disable ssh root access & users passw auth
+      import_role:
+        name: sshd_config
+      tags: sshd
+...

@@ -1,0 +1,37 @@
+---
+- name: Set templatized InfluxDB configuration
+  template:
+    src: influxdb.conf.j2
+    dest: /etc/influxdb/influxdb.conf
+    owner: influxdb
+    group: influxdb
+    mode: 0644
+  become: true
+
+- name: Make sure InfluxDB enabled & started
+  systemd:
+    name: influxdb
+    enabled: yes
+    state: started
+  become: true
+
+- name: Switch to pyenv
+  set_fact:
+    ansible_python_interpreter: "{{ansible_env.HOME}}/.pyenv/shims/python"
+
+- name: Create database
+  influxdb_database:
+      database_name: "{{influxdb_database_name}}"
+      udp_port: 4444 # https://github.com/ansible/ansible/issues/68967
+  become: true
+
+- name: Create a user
+  influxdb_user:
+    user_name: "{{influxdb_user}}"
+    user_password: "{{influxdb_password}}"
+    udp_port: 4444 # https://github.com/ansible/ansible/issues/68967
+    grants:
+      - database: "{{influxdb_database_name}}"
+        privilege: 'ALL'
+  become: true
+...

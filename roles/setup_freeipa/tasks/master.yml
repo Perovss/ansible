@@ -1,0 +1,27 @@
+---
+- name: enable ipv6 on local loopback interface (lo)
+  sysctl:
+    name: net.ipv6.conf.lo.disable_ipv6
+    value: '0'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: install freeipa-server
+  command: >
+    /usr/sbin/ipa-server-install
+    --setup-dns
+    --allow-zone-overlap
+    --auto-reverse
+    --auto-forwarders
+    --realm="{{ipa_realm_name}}"
+    --hostname="{{ipa_master_hostname}}"
+    --domain="{{ipa_domain_name}}"
+    --ds-password="{{ipa_ds_password}}"
+    --admin-password="{{ipa_admin_password}}"
+    --forward-policy=only
+    -U
+  when:
+  - ipa_role == "master"
+
+...

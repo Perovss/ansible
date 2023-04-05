@@ -1,0 +1,79 @@
+---
+- name: Create var for clear code
+  set_fact:
+    side_a:
+      host: "{{inventory_hostname}}"
+      name: "{{inventory_hostname_short}}"
+    side_b:
+      host: "{{item_host}}"
+      name: "{{(item_host.split('.'))[0]}}"
+
+- name: Check exists config on side_a
+  stat:
+    path: "/etc/openvpn/{{side_b.name}}.conf"
+  register: side_a_config
+
+- name: Check exists config on side_b
+  stat:
+    path: "/etc/openvpn/{{side_a.name}}.conf"
+  delegate_to: "{{side_b.host}}"  
+  register: side_b_config
+    
+- name: Create new configs
+  block:
+
+  - name: Generate random port & random network octet
+    set_fact:
+      first_octet: "{{30 |random(start=28)}}"
+      second_octet: "{{255 |random}}"
+      openvpn_p2p_port: "{{32767 |random(start=10000)}}"
+
+  - name: Allow incoming p2p openvpn.
+    iptables:
+      chain: INPUT
+      action: insert
+      protocol: "{{ openvpn_p2p_proto | default('udp', true) }}"
+      destination_port: "{{ openvpn_p2p_port }}"
+      jump: ACCEPT
+    notify: save iptables rules
+
+  - name: Generate a static key
+    command: openvpn --genkey secret /etc/openvpn/static.key
+    changed_when: false
+
+  - name: Read static key
+    command: cat /etc/openvpn/static.key
+    no_log: true
+    changed_when: false
+    register: openvpn_p2p_secret
+
+  - name: Make openvpn config (on side_a)
+    template:
+      src: p2p-side-a.conf.j2
+      dest: "/etc/openvpn/{{side_b.name}}.conf"
+
+  - name: enable & start openvpn connection (on side_a)
+    systemd:
+      name: openvpn@{{side_b.name}}
+      enabled: yes
+      state: restarted     
+
+  - name: Make openvpn config (on side_b)
+    template:
+      src: p2p-side-b.conf.j2
+      dest: "/etc/openvpn/{{side_a.name}}.conf"        
+    delegate_to: "{{side_b.host}}"
+
+  - name: enable & start openvpn connection (on side_b)
+    systemd:
+      name: openvpn@{{side_a.name}}
+      enabled: yes
+      state: restarted  
+    delegate_to: "{{side_b.host}}"
+
+  become: true 
+  when: | 
+    not side_a_config.stat.exists or
+    not side_b_config.stat.exists           
+
+...

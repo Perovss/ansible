@@ -1,0 +1,8 @@
+---
+
+- name: restart oracle_exporter
+  systemd:
+    name: oracledb_exporter
+    state: restarted
+  become: True  
+  when: oracle_exporter_service_state != 'stopped'

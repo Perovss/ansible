@@ -1,0 +1,109 @@
+---
+- name: Install dependencies
+  apt:
+    name: "{{dependencies_packages}}"
+    state: present
+  become: true
+
+- name: Download easy-rsa from GitHub
+  git:
+    repo: "https://github.com/OpenVPN/easy-rsa.git"
+    dest: "{{easyrsa_dest}}"
+    version: v3.0.8
+  become: true
+
+- name: Configure easy-rsa
+  template:
+    src: vars.j2
+    dest: "{{easyrsa_dest}}/easyrsa3/vars"
+  become: true
+
+- name: Initialize pki
+  command: ./easyrsa init-pki
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+    creates: "{{easyrsa_dest}}/easyrsa3/pki"
+  become: true
+
+- name: Build CA keys
+  command: ./easyrsa build-ca nopass
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+    creates: "{{easyrsa_dest}}/easyrsa3/pki/private/ca.key"
+  become: true
+
+- name: Generate the Diffie-Hellman key
+  command: ./easyrsa gen-dh
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+    creates: "{{easyrsa_dest}}/easyrsa3/pki/dh.pem"
+  become: true
+
+- name: Generate the server key pair
+  command: ./easyrsa --req-cn=server gen-req server nopass
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+    creates: "{{easyrsa_dest}}/easyrsa3/pki/private/server.key"
+  become: true
+
+- name: Sign the server cert
+  command: ./easyrsa sign-req server server
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+    creates: "{{easyrsa_dest}}/easyrsa3/issued/server.crt"
+  become: true
+
+- name: Generate the client key pair
+  command: ./easyrsa --req-cn={{item_easyrsa }} gen-req {{ item_easyrsa}} nopass
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+    creates: "{{easyrsa_dest }}/easyrsa3/pki/private/{{ item_easyrsa}}.key"
+  register: easyrsa_issue
+  loop: "{{easyrsa_clients}}"
+  loop_control:
+      loop_var: item_easyrsa
+  when: easyrsa_clients is defined and easyrsa_clients |length > 0
+  become: true
+
+- name: Sign the client cert
+  command: ./easyrsa sign-req client {{item_easyrsa}}
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+    creates: "{{easyrsa_dest }}/easyrsa3/issued/{{ item_easyrsa}}.crt"
+  loop: "{{easyrsa_clients}}"
+  loop_control:
+      loop_var: item_easyrsa
+  when: easyrsa_clients is defined and easyrsa_clients |length > 0
+  become: true
+
+- name: Generate ta.key
+  command: "openvpn --genkey --secret {{easyrsa_dest}}/easyrsa3/pki/ta.key"
+  args:
+    creates: "{{easyrsa_dest}}/easyrsa3/pki/ta.key"
+  become: true
+
+- name: Generate certificate revocation list crl.pem
+  command: ./easyrsa gen-crl
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+    creates: "{{easyrsa_dest}}/easyrsa3/pki/crl.pem"
+  become: true
+
+- name: revoke client certificate
+  command: ./easyrsa revoke {{item_easyrsa}}
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+  loop: "{{easyrsa_revoke_clients}}"
+  loop_control:
+      loop_var: item_easyrsa
+  register: easyrsa_revoke
+  when: easyrsa_revoke_clients is defined and easyrsa_revoke_clients |length > 0
+  become: true
+
+- name: Update certificate revocation list crl.pem
+  command: ./easyrsa gen-crl
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+  when: easyrsa_revoke.changed or easyrsa_issue.changed
+  become: true
+...

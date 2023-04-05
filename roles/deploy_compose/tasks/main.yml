@@ -1,0 +1,27 @@
+---
+- name: Copy compose file
+  copy:
+    src: '{{server_name}}/docker-compose.yml'
+    dest: /srv/docker-compose.yml
+  become: yes
+
+- name: Set python env
+  set_fact:
+    ansible_python_interpreter: "{{ansible_env.HOME}}/.pyenv/shims/python"
+
+- name: deploy compose
+  docker_compose:
+    project_src: "{{item.docker_compose_project_src}}"
+    project_name: "{{item.docker_compose_project_name}}"
+    build: "{{item.docker_compose_build | default(omit)}}"
+    nocache: "{{item.docker_compose_nocache | default(omit)}}"
+    pull: "{{item.docker_compose_pull | default('yes',true)}}"
+    remove_images: "{{item.docker_compose_remove_images | default(omit)}}"
+    remove_orphans: "{{item.docker_compose_remove_orphans | default(omit)}}"
+    remove_volumes: "{{item.docker_compose_remove_volumes | default(omit)}}"
+    recreate: "{{item.docker_compose_recreate | default(omit)}}"
+    stopped: "{{item.docker_compose_stopped | default(omit)}}"
+    restarted: "{{item.docker_compose_restarted | default(omit)}}"
+    state: "{{docker_compose_state | default(omit)}}"
+  loop: "{{docker_compose_params}}"
+...

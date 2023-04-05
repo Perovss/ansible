@@ -1,0 +1,8 @@
+---
+ovs_bridge: ""
+untagged_vlan: ""
+tagged_vlans: []
+kvm_networks:
+virt_net_name: []
+
+...

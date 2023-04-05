@@ -1,0 +1,51 @@
+port {{openvpn_port}}
+proto {{openvpn_proto}}
+dev {{openvpn_dev}}
+{% if bridge_interfaces is not defined %}
+server-bridge {{bridge_ip | ipaddr('address') }} {{ bridge_ip | ipaddr('netmask') }} {{ bridge_ip | ipaddr('next_usable') }} {{ bridge_ip | ipaddr('last_usable')}}
+{% else %}
+{% for bridge_interface in bridge_interfaces %} 
+server-bridge {{bridge_interface.ipv4.address }} {{ bridge_interface.ipv4.netmask }} {{ bridge_interface.ipv4.address | ipmath(1) }} {{ bridge_interface.ipv4.address | ipmath(253)}}
+{% endfor %}
+{% endif %}
+keepalive 10 60
+{{openvpn_comp}}
+persist-key
+persist-tun
+user nobody
+group nogroup
+status /var/log/openvpn/{{openvpn_dev}}-status.log
+log-append /var/log/openvpn/{{openvpn_dev}}.log
+verb {{openvpn_verb | default('3', true)}}
+
+{% if private_dns is defined and private_dns | length -%}
+# DNS
+{%- for dns in private_dns %} 
+push "dhcp-option DNS {{dns}}"
+{%- endfor %}
+{% endif %}
+{% if dns_search is defined and dns_search | length -%}
+{%- for dns in dns_search %} 
+push "dhcp-option DOMAIN-SEARCH {{dns}}"
+{%- endfor %}
+{% endif %}
+
+{% if push_routes is defined and push_routes | length -%}
+# Маршруты
+{{push_routes}}
+{%- endif %}
+
+# Уровень безопасности. Как минимум нужна возможность запускать скрипты при старте
+script-security 2
+up /etc/openvpn/server_up.sh
+down /etc/openvpn/server_down.sh
+
+# Сертификаты и ключи
+tls-server
+cipher {{openvpn_cipher}}
+ca {{easyrsa_dir}}/easyrsa3/pki/ca.crt
+cert {{easyrsa_dir}}/easyrsa3/pki/issued/server.crt
+key {{easyrsa_dir}}/easyrsa3/pki/private/server.key
+dh {{easyrsa_dir}}/easyrsa3/pki/dh.pem
+tls-auth {{easyrsa_dir}}/easyrsa3/pki/ta.key 0
+crl-verify {{easyrsa_dir}}/easyrsa3/pki/crl.pem

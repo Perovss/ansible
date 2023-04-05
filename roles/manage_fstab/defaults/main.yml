@@ -1,0 +1,7 @@
+---
+mount_params:
+- mount_path: ""
+  mount_src: ""
+  mount_fstype: ""
+  mount_state: ""
+...

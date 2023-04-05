@@ -1,0 +1,20 @@
+---
+- hosts: influxdb.soft-machine.tech
+  tasks:
+
+    - name: install docker engine
+      import_role:
+        name: install_docker
+      tags: docker
+
+    - name: setup pyenv
+      import_role:
+        name: manage_python_packages
+      vars:
+        pyenv_virtualenv: ansible_python3
+        python_packages:
+          - docker
+          - PyYAML
+          - docker-compose
+      tags: pyenv
+...

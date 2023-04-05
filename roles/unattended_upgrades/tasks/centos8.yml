@@ -1,0 +1,27 @@
+---
+- name: Install unattended upgrades packages
+  dnf:
+    name: "{{unattended_upgrades_packages}}"
+    state: present
+  become: true
+
+- name: configure unattended upgrades
+  template:
+      src: '{{ansible_distribution | lower}}{{ansible_distribution_major_version}}/automatic.conf.j2'
+      dest: /etc/dnf/automatic.conf
+      owner: root
+      group: root
+      mode: 0644
+  become: true
+
+- name: start yum-cron
+  systemd:
+    name: dnf-automatic.timer
+    enabled: yes
+    state: started
+  become: true
+
+- name: configure smtp
+  include_role:
+    name: configure_ssmtp
+...

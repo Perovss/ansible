@@ -1,0 +1,44 @@
+---
+version: "2"
+services:
+
+  elasticsearch:
+    image: elasticsearch:7.5.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx1024m"
+    volumes:
+      - "elasticsearch_db:/usr/share/elasticsearch/data"
+    ports:
+      - "9200:9200"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: always
+
+  kibana:
+    image:  kibana:7.5.1
+    container_name: kibana
+    environment:
+      - SERVER_NAME=kibana.soft-machine.ru
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    restart: always
+
+  reverse_proxy:
+    image: "nginx:1.17.5"
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./nginx_conf:/etc/nginx/conf.d/"
+      - "./nginx_ssl:/etc/nginx/ssl"
+
+volumes:
+  elasticsearch_db:
+...

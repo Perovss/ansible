@@ -1,0 +1,61 @@
+---
+- name: check to see if pyenv is already installed
+  shell: "~/.pyenv/bin/pyenv --version"
+  ignore_errors: true
+  register: pyenv_is_installed
+  changed_when: false
+  become_user: "{{item.0.user_name}}"
+  become: yes
+
+- name: Handle the error if var file current release not exist
+  block:
+    - name: Includeing OS specific variables for current release 
+      include_vars: "{{ansible_distribution | lower}}{{ansible_distribution_major_version}}.yml"
+  rescue:
+    - name: Includeing OS specific variables for os family
+      include_vars: "{{ansible_os_family | lower}}.yml"
+  always:    
+    - name: Update cache
+      command: "{{update_cache_command}}"
+      become: yes
+
+    - name: Installing dependency packages
+      package:
+        name: "{{pyenv_dependency_packages}}"
+        state: present
+      register: apt_result
+      until: apt_result is not failed
+      retries: 3
+      delay: 30
+      ignore_errors: yes
+      become: yes
+      
+    - name: Download pyenv-installer
+      get_url:
+        url: https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer
+        mode: '0744'
+        dest: /tmp
+
+    - name: Run pyenv-installer
+      shell: "bash /tmp/pyenv-installer"
+      become_user: "{{item.0.user_name}}"
+      
+    - name: delete pyenv-installer
+      file:
+        path: /tmp/pyenv-installer
+        state: absent
+
+    - name: load pyenv
+      copy:
+        dest: '/home/{{item.0.user_name}}/.bashrc.d/pyenv.bashrc'
+        content: |
+          export PATH="$HOME/.pyenv/bin:$PATH"
+          eval "$(pyenv init -)"
+          eval "$(pyenv virtualenv-init -)"
+        owner: "{{item.0.user_name}}"
+        group: "{{item.0.user_name}}"
+        mode: '0644'
+      
+  when: pyenv_is_installed.rc != 0
+  become: yes
+...

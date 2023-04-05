@@ -1,0 +1,47 @@
+--   Creating tablespace with the defined properties
+create tablespace {{db_tablespace }} datafile '{{ oracledb.filesystemstorage }}/{{ sid }}/{{ db_tablespace }}_01.dbf' size {{ oracle_default_tablespace_size }} autoextend on , '{{ oracledb.filesystemstorage }}/{{ sid }}/{{ db_tablespace }}_02.dbf' size {{ oracle_default_tablespace_size }} autoextend on , '{{ oracledb.filesystemstorage }}/{{ sid }}/{{ db_tablespace }}_03.dbf' size {{ oracle_default_tablespace_size }} autoextend on , '{{ oracledb.filesystemstorage }}/{{ sid }}/{{ db_tablespace }}_04.dbf' size {{ oracle_default_tablespace_size }} autoextend on , '{{ oracledb.filesystemstorage }}/{{ sid }}/{{ db_tablespace }}_05.dbf' size {{ oracle_default_tablespace_size}} autoextend on;
+
+--   Creating temporary tablespace with the defined properties
+create temporary tablespace {{db_tablespace }}_temp tempfile '{{ oracledb.filesystemstorage }}/{{ sid }}/{{ db_tablespace }}_temp.dbf' size {{ oracle_temp_tablespace_size}} autoextend on;
+
+--   This procedure enables execution of certain restricted statements (most DDLs) on metadata-linked objects, from within a PDB
+
+alter session set "_ORACLE_SCRIPT"=true;
+
+--   Creating DB user with the defined properties
+create user {{db_user}}
+identified by {{db_user_password}}
+default tablespace {{db_tablespace}}
+temporary tablespace {{db_tablespace}}_temp
+quota unlimited on {{db_tablespace}};
+grant create session to {{db_user}};
+grant create table to {{db_user}};
+grant create any index to {{db_user}};
+
+{% if inventory_hostname_short == "perf-oracledb" %}
+SET ESCAPE ON
+
+DEFINE NEW_USER_NAME = 'SOGAZ_PERF';
+DEFINE NEW_USER_PWD = 'CzKaHz9e';
+DEFINE TS_DATA = 'ts_&NEW_USER_NAME';
+DEFINE TS_DATA_FILE = '&TS_DATA\.dat';
+DEFINE TS_DATA_IDX = '&TS_DATA\_idx';
+DEFINE TS_DATA_FILE_IDX = '&TS_DATA_IDX\.dat';
+
+DEFINE;
+
+CREATE BIGFILE TABLESPACE &TS_DATA DATAFILE '/opt/oracle/oradata/orcl/&TS_DATA_FILE' SIZE 20M AUTOEXTEND ON;
+CREATE BIGFILE TABLESPACE &TS_DATA_IDX DATAFILE '/opt/oracle/oradata/orcl/&TS_DATA_FILE_IDX' SIZE 10M AUTOEXTEND ON;
+create user &NEW_USER_NAME identified by &NEW_USER_PWD default tablespace &TS_DATA quota unlimited on &TS_DATA quota unlimited on &TS_DATA_IDX;
+grant connect to &NEW_USER_NAME;
+grant create table to &NEW_USER_NAME;
+grant create public synonym to &NEW_USER_NAME;
+grant create sequence to &NEW_USER_NAME;
+grant create procedure to &NEW_USER_NAME;
+grant create view to &NEW_USER_NAME;
+{% endif %}
+--   Defining System Global Area forms shared by all the processes belonging to a single Oracle database instance
+
+ALTER SYSTEM SET sga_target= {{oracledb.sga_target}}M SCOPE=BOTH;
+
+exit

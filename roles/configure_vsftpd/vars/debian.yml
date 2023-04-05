@@ -1,0 +1,7 @@
+---
+vsftpd_package:
+  - vsftpd
+  - libpam-pwdfile
+  - apache2-utils  
+
+vsftpd_config_template_path: /etc/vsftpd.conf

@@ -1,0 +1,8 @@
+---
+- name: Add repository
+  apt_repository:
+    repo: "{{apt_repository_repo}}"
+    state: "{{apt_repository_state}}"
+    filename: "{{apt_repository_filename}}"
+  become: true
+...

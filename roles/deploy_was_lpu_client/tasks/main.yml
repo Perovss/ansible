@@ -1,0 +1,13 @@
+---
+- import_tasks: prepare.yml
+
+- import_tasks: check_services.yml
+
+- import_role:
+    name: install_nginx
+  when: nginxinstalled.rc != 0
+
+- import_tasks: nginx.yml
+
+- import_tasks: deploy.yml
+...

@@ -1,0 +1,7 @@
+---
+- hosts: logstash
+  tasks:
+  - name: install logstash
+    import_role:
+      name: deploy_logstash
+...

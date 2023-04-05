@@ -1,0 +1,23 @@
+---
+packages_list:
+- bash-completion
+- curl
+- mc
+- wget
+- vim
+- git
+- ntp
+- htop
+- atop
+- iotop
+- ethtool
+- iperf3
+- rsync
+- zip
+- unzip
+- p7zip-rar
+- p7zip-full
+- ncdu
+- policykit-1
+- byobu
+...

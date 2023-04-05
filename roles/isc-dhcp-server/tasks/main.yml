@@ -1,0 +1,15 @@
+---
+- name: Make isc-dhcp-server config
+  template:
+    src: dhcpd.conf.j2
+    dest: /etc/dhcp/dhcpd.conf
+  become: true
+  notify: restart isc-dhcp-server
+
+- name: setup isc-dhcp-server interfaces
+  template:
+    src: isc-dhcp-server.j2
+    dest: /etc/default/isc-dhcp-server
+  become: true
+  notify: restart isc-dhcp-server
+...  

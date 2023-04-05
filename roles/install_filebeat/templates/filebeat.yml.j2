@@ -1,0 +1,157 @@
+---
+filebeat.inputs:
+
+{% if groups['routers'] is defined and inventory_hostname in groups['routers'] %}
+- type: log
+  paths:
+    - "/var/log/openvpn/*.log"
+  fields:
+    type: openvpn
+  fields_under_root: true
+  exclude_files: ['.+status\.log$']
+
+- type: log
+  paths:
+    - "/var/log/quagga/*.log"
+  fields:
+    type: quagga
+  fields_under_root: true
+{% endif %}
+
+{% if dockerinstalled.rc == 0 and ((groups['upr_stands'] is defined and inventory_hostname in groups['upr_stands']) or (groups['sogaz_stands'] is defined and inventory_hostname not in groups['sogaz_stands'])) %}
+- type: container
+  stream: all
+  paths:
+    - "/var/lib/docker/containers/*/*.log"
+  fields:
+    type: docker
+  fields_under_root: true
+  exclude_files: ['\.gz$']
+  multiline.pattern: '(^\d{4}-\d{2}-\d{2})|(^\{\")|(^(\d{1,3}\.?){4})'
+  multiline.negate: true
+  multiline.match: after
+{% endif %}
+
+{% if groups['sogaz_stands'] is defined and inventory_hostname in groups['sogaz_stands'] %}
+- type: log
+  paths:
+    - "/opt/sogaz/logs/*.log"
+  fields:
+    type: sogaz
+  fields_under_root: true
+  exclude_files: ['\.gz$']
+  json.keys_under_root: true
+  json.overwrite_keys: true
+  json.message_key: message
+  combine_partial: true
+{% endif %}
+
+{% if groups['project_was'] is defined and inventory_hostname in groups['project_was'] %}
+- type: log
+  paths:
+    - "/opt/apache/catalina_base/logs/*.log"
+  fields:
+    type: was
+  fields_under_root: true
+  exclude_files: ['\.gz$']
+  multiline.pattern: '^\d{4}-\d{2}-\d{2}\s'
+  multiline.negate: true
+  multiline.match: after
+
+{% if sogaz_lpu is defined and sogaz_lpu == 'yes' %}
+- type: log
+  paths:
+    - "/opt/sogaz/logs/elk/*.json"
+  fields:
+    type: was
+  fields_under_root: true
+  exclude_files: ['\.gz$']
+  processors:
+  - decode_json_fields:
+      fields: ["@timestamp", "@version", "message", "logger_name", "thread_name", "level", "level_value", "env"]
+      target: ""
+      # overwrite existing target elasticsearch fields while decoding json fields
+      overwrite_keys: true
+{% endif %}
+{% endif %}
+
+{% if postgresinstalled.rc == 0 %}
+- type: log
+  paths:
+    - "/var/log/postgresql/*.log"
+  fields:
+    type: postgres
+  fields_under_root: true
+  # exclude_files: ['\.gz$']
+  # multiline.pattern: '^\d{4}-\d{2}-\d{2}\s'
+  # multiline.negate: true
+  # multiline.match: after
+{% endif %}
+
+{% if groups['sogaz_stands'] is defined and inventory_hostname in groups['sogaz_stands'] %}
+processors:
+  - script:
+      lang: javascript
+      id: stack_trace_adder
+      source: >
+        function process(event) {
+          var stackTrace = event.Get("stack_trace")
+          if (!stackTrace) {
+            return;
+          }
+          var stackTraceLines = stackTrace.split(/\r?\n/);
+          var messagWithStackTrace = stackTraceLines[0];
+          var message = event.Get("message");
+          if (message) {
+            messagWithStackTrace = [message, messagWithStackTrace].join("\n")
+          }
+          event.Put("message", messagWithStackTrace);
+        }
+{% else %}
+processors:
+- dissect:
+    tokenizer: "%{ts} %{+ts} %{?level} %{}"
+    target_prefix: "dissect"
+- timestamp:
+    field: dissect.ts
+    layouts:
+      - '2006-01-02 15:04:05.000'
+    timezone: Europe/Moscow
+    ignore_failure: true
+    test:
+      - '2020-04-17 10:48:25.655'
+- drop_fields:
+    fields: [dissect.ts]
+    ignore_missing: true
+{% endif %}
+
+{% if dockerinstalled.rc == 0 and ((groups['upr_stands'] is defined and inventory_hostname in groups['upr_stands']) or (groups['sogaz_stands'] is defined and inventory_hostname not in groups['sogaz_stands'])) %}
+# decode the log field (sub JSON document) if JSON encoded, then maps it's fields to elasticsearch fields
+- decode_json_fields:
+    fields: ["log", "message"]
+    target: ""
+    # overwrite existing target elasticsearch fields while decoding json fields
+    overwrite_keys: true
+- add_docker_metadata:
+    host: "unix:///var/run/docker.sock"
+{% endif %}
+
+output.logstash:
+  hosts: "{{logstash_address}}:5044"
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+# Write Filebeat own logs only to file to avoid catching them with itself in docker log files
+logging.level: info
+logging.to_files: false
+logging.to_syslog: false
+logging.metrics.enabled: false
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+ssl.verification_mode: none
+...

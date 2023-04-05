@@ -1,0 +1,8 @@
+---
+pam_limits_params:
+  - pam_limits_domain: ""
+    pam_limits_type: ""
+    pam_limits_item: ""
+    pam_limits_value: ""
+    pam_limits_use_max: ""
+...

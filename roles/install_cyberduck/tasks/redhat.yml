@@ -1,0 +1,9 @@
+---
+- name: Add duck repository on rhel
+  yum_repository:
+    name: duck-stable
+    description: duck-stable YUM repo
+    baseurl: "https://repo.cyberduck.io/stable/$basearch/"
+    gpgcheck: no
+  become: true
+...

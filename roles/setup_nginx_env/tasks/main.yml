@@ -1,0 +1,32 @@
+---
+- name: Create a directory if it does not exist
+  file:
+    path: '/srv/{{item}}'
+    state: directory
+    mode: "0755"
+  loop:
+    - nginx-conf
+    - ssl
+  become: true
+
+- name: Copy nginx config
+  copy:
+    src: 'nginx-conf/{{service_name}}.soft-machine.ru.conf'
+    dest: /srv/nginx-conf/
+    mode: '0644'
+  become: true
+
+- name: Copy ssl certificate
+  copy:
+    src: 'ssl/{{item}}'
+    dest: /srv/ssl/
+    mode: '0644'
+  loop:
+    - soft-machine.ru.ca.crt
+    - soft-machine.ru.key
+  become: true  
+
+
+
+
+...

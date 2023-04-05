@@ -1,0 +1,22 @@
+---
+- name: Enable EPEL Repository on CentOS 7
+  yum_repository:
+    name: epel-release
+    description: EPEL YUM repo
+    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+    state: "{{yum_repository_state | default('present',true)}}"
+  become: true
+
+- name: Import EPEL GPG key
+  rpm_key:
+    key: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ansible_distribution_major_version}}"
+    state: present
+  become: true
+
+- name: Package Install on CentOS 7
+  yum:
+    name: "{{packages_list}}"
+    state: "{{yum_state | default('present',true)}}"
+    update_cache: "{{yum_update_cache | default('no',true)}}"
+  become: true
+...

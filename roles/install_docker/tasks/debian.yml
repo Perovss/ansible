@@ -1,0 +1,47 @@
+---
+- name: Ensure old versions of Docker are not installed.
+  package:
+    name:
+      - docker
+      - docker-engine
+    state: absent
+  become: true
+
+- name: Ensure dependencies are installed.
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  register: apt_result
+  until: apt_result is not failed
+  retries: 5
+  delay: 30
+  ignore_errors: yes
+  become: true
+
+- name: Add Docker apt key
+  apt_key:
+    id: 0EBFCD88
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  become: true
+
+- name: Add Docker repository.
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable"
+    state: present
+    update_cache: true
+  become: true
+
+- name: install Docker packages
+  apt:
+    name: "{{docker_packages}}"      
+    state: present
+  become: true
+
+...

@@ -1,0 +1,6 @@
+---
+ipa_domain_name: tourmachine.tech
+ipa_realm_name: TOURMACHINE.TECH
+ipa_master_hostname: ipa1.tourmachine.tech
+ipa_replica_hostname: ipa2.tourmachine.tech
+...

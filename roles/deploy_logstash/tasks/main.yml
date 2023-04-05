@@ -1,0 +1,26 @@
+---
+- name: add apt key for elk repository
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+  become: yes
+
+- name: Update repositories cache and install Logstash
+  apt:
+    name: logstash
+    update_cache: yes
+  become: yes
+
+- name: add logstash conf
+  template:
+    src: logstash.conf.j2
+    dest: /etc/logstash/conf.d/01-beats-input.conf
+  become: yes
+  notify: restart logstash
+
+- name: add logstash index pattern json
+  template:
+    src: logstash.json.j2
+    dest: /usr/share/logstash/config/logstash.json
+  become: yes
+  notify: restart logstash

@@ -1,0 +1,13 @@
+---
+docker_container_params:
+  - docker_container_name: ""
+    docker_container_hostname: ""
+    docker_container_image: ""
+    docker_container_state: ""
+    docker_container_command: ""
+    docker_container_ports: []
+    docker_container_volumes: []
+    docker_container_ulimits: []
+    docker_container_sysctls: []
+    docker_container_env: ""
+...

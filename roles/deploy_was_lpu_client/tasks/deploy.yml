@@ -1,0 +1,20 @@
+---
+- name: Download build artifact from Jenkins
+  get_url:
+    url: "{{jenkins_artifact_url}}"
+    dest: /tmp/
+    username: "{{jenkins_api_username}}"
+    password: "{{jenkins_api_password}}"
+    force_basic_auth: yes
+
+- name: cleanup work dir
+  command: 'rm -rf {{box_install_dir}}*'
+
+- name: Deploy artifact
+  unarchive:
+    src: "/tmp/{{jenkins_artifact_url | urlsplit('path') | basename}}"
+    dest: "{{box_install_dir}}"
+    remote_src: yes
+  notify: restart nginx
+  become: true
+...

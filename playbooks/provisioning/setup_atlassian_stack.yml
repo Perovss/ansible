@@ -1,0 +1,10 @@
+---
+- hosts: project_atlassian_stack
+  tasks:
+
+    - name: install & setup nginx
+      import_role:
+        name: setup_nginx
+      tags: nginx
+
+...

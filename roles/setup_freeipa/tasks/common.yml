@@ -1,0 +1,48 @@
+---
+# - name: set hostname
+#   hostname:
+#     name: "{{inventory_hostname | replace('_','-')}}"
+
+- name: generate /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ansible_default_ipv4.address }} {{ inventory_hostname | replace('_','-')}}"
+    state: present
+
+# - name: save master ip address for resolv.conf
+#   set_fact:
+#     nameserver_ip: "{{ansible_default_ipv4.address}}"
+#   when:
+#     - ipa_role == "master"
+
+# - name: configure name servers on replica
+#   lineinfile:
+#     path: /etc/resolv.conf
+#     line: "nameserver {{hostvars[ipa_master_hostname]['nameserver_ip']}}"
+#     insertafter: "^#"
+#     state: present
+#   when:
+#     - ipa_role == "replica"
+
+- name: install Ansible, Python and system Dependencies
+  dnf:
+    name:
+    - firewalld
+    - python3-firewall
+    state: present
+
+- name: install DL1 AppStream Module
+  dnf:
+    name: "@idm:DL1"
+    state: present
+
+- name: install freeipa packages
+  yum:
+    name: ipa-server-dns
+    state: present
+
+- name: update system
+  dnf:
+    name: "*"
+    state: latest
+...

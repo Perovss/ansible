@@ -1,0 +1,5 @@
+---
+yum_state: present
+yum_update_cache: yes
+nginx_repo_gpg_key_url: https://nginx.org/keys/nginx_signing.key
+...

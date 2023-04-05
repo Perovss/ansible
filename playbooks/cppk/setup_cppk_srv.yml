@@ -1,0 +1,77 @@
+
+
+- hosts: cppk-prod-srv.soft-machine.tech
+  vars:
+    s3_access_key: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      65386137383836663833313538626139356363343733616334653434643338623630656232363639
+      6138356162343963643934313930353862666631636361380a653465643463393336666438653635
+      34373262663666383561313838323331346337363331353864366332383034666132313031643637
+      3435393130623461330a383130626133353933653236356365343261386435666633646166346262
+      36633265663439623835633166386462303539613666623335336162343131323064
+    s3_secret_key: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      39326365366639353632363764393966306331366661356339326132663730613339326664316534
+      3762333535326634646461386265396130366437663565320a356330303763653134326136653635
+      66346130633736626631613637616130653037643666376662393231366666643436303139373764
+      6234613666643265630a336663306430363731333631633235663130313936363665323531343735
+      61633432343930633433626432653236393063633965383630666264393963626536323062636130
+      6437333235393038376639373637626439353361663730373962
+  tasks:
+
+    - name: check user
+      user:
+        name: backup
+        state: present
+        groups: cppkuser
+      register: user_registered
+      become: true
+
+    - name: Install s3cmd package
+      package:
+        name: s3cmd
+        state: present
+      become: true
+
+    - name: make s3cmd config file
+      copy:
+        content: |
+          access_key = {{s3_access_key}}
+          bucket_location = ru-central1
+          guess_mime_type = True
+          host_base = storage.yandexcloud.net
+          host_bucket = %(bucket)s.storage.yandexcloud.net          
+          secret_key = {{s3_secret_key}}
+          website_endpoint = http://%(bucket)s.s3-website-%(location)s.amazonaws.com/       
+        dest: "{{user_registered.home}}/.s3cfg"
+      become: true
+
+    - name: create backup script
+      copy:
+        dest: "{{user_registered.home}}/backup_script.sh"
+        mode: 0755            
+        content: |
+          #!/usr/bin/env bash
+          BACKUP_MAIN_DIR=~/backups
+          mkdir $BACKUP_MAIN_DIR
+          tar -czvf $BACKUP_MAIN_DIR/store_backup-$(date +"%d-%m-%Y-%H-%M").tar.gz /opt/apache/sancon/store/
+          # clean up (remove all files older 5 days)
+          find $BACKUP_MAIN_DIR -mtime +5 -type f -delete
+          # upload to s3 
+          /usr/bin/s3cmd --recursive --skip-existing --storage-class COLD put ~/backups/ s3://cppk
+      become_user: backup
+      become: yes
+
+    - name: manage cron
+      import_role:
+        name: cron_manage
+      vars:
+        cron_params:
+            - cron_name: "store_backup"
+              cron_minute: "0"
+              cron_hour: "5"
+              cron_user: backup
+              cron_job: " {{user_registered.home}}/backup_script.sh > /dev/null 2>&1"              
+      become_user: backup
+      become: yes
+...

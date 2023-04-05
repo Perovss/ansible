@@ -1,0 +1,27 @@
+authoritative;
+default-lease-time 604800;
+max-lease-time 2592000;
+log-facility local7;
+
+{% for dhcp_subnet in dhcp_subnets %}
+subnet {{dhcp_subnet.subnet }} netmask {{ dhcp_subnet.netmask}} {
+        range {{dhcp_subnet.range}};
+        option routers {{dhcp_subnet.routers}};
+        option domain-name-servers{% for domain_name_server in dhcp_subnet.domain_name_servers %} {{domain_name_server}}{% if not loop.last %},{% endif %}{% endfor %};
+{% if dhcp_subnet.default_lease_time is defined and dhcp_subnet.default_lease_time%}
+        default-lease-time {{dhcp_subnet.default_lease_time}};
+{% endif %}
+{% if dhcp_subnet.max_lease_time is defined and dhcp_subnet.max_lease_time %}
+        max-lease-time {{dhcp_subnet.max_lease_time}};
+{% endif %}
+}
+{% endfor %}
+
+{% if dhcp_hosts is defined and dhcp_hosts %}
+{% for dhcp_host in dhcp_hosts %}
+host {{dhcp_host.hostname}} {
+  hardware ethernet {{dhcp_host.mac}};
+  fixed-address {{dhcp_host.ip}};
+}
+{% endfor %}
+{% endif %}

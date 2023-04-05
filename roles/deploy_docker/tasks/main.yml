@@ -1,0 +1,21 @@
+---
+- name: Set python env
+  set_fact:
+    ansible_python_interpreter: "{{ansible_env.HOME}}/.pyenv/shims/python"
+
+- name: deploy Container
+  docker_container:
+    name: "{{item.docker_container_name}}"
+    hostname: "{{item.docker_container_hostname | default(omit)}}"
+    image: "{{item.docker_container_image}}"
+    state: "{{docker_container_state | default(omit)}}"
+    ports: "{{item.docker_container_ports | default(omit)}}"
+    volumes: "{{item.docker_container_volumes | default(omit)}}"
+    command: "{{item.docker_container_command | default(omit)}}"
+    ulimits: "{{item.docker_container_ulimits | default(omit)}}"
+    sysctls: "{{item.docker_container_sysctls | default(omit)}}"
+    restart_policy: "{{item.docker_container_restart_policy | default(omit)}}"
+    env: "{{item.docker_container_env | default(omit)}}"
+    network_mode: "{{item.docker_container_network_mode | default(omit)}}"
+  loop: "{{docker_container_params}}"
+...

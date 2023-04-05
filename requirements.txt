@@ -1,0 +1,10 @@
+ansible==2.9.0
+cffi==1.14.6
+cryptography==3.4.8
+Jinja2==3.0.1
+MarkupSafe==2.0.1
+netaddr==0.8.0
+pexpect==4.8.0
+ptyprocess==0.7.0
+pycparser==2.20
+PyYAML==5.4.1

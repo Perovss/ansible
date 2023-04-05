@@ -1,0 +1,12 @@
+---
+- name: setup kernel params
+  sysctl:
+    name: "{{item.sysctl_name}}"
+    value: "{{item.sysctl_value}}"
+    state: "{{item.sysctl_state | default('present',true)}}"
+    sysctl_file: "{{ item.sysctl_custom_file | default('/etc/sysctl.conf',true)}}"
+    reload: "{{item.sysctl_reload | default('yes',true)}}"
+    sysctl_set: "{{item.sysctl_set | default('no',true)}}"
+  become: true  
+  loop: "{{sysctl_params}}"
+...

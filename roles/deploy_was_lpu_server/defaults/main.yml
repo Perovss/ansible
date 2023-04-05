@@ -1,0 +1,20 @@
+---
+jenkins_artifact_url: 'https://jenkins.soft-machine.ru/view/WAS/job/was-lpu-server-release/lastSuccessfulBuild/artifact/was-server/target/was-api.war'
+tomcat_user: tomcat
+tomcat_download_url: 'http://mirror.linux-ia64.org/apache/tomcat/tomcat-7/v7.0.103/bin/apache-tomcat-7.0.103.zip'
+tomcat_distr_version: apache-tomcat-7.0.103
+temp_dir_git: /tmp/was-infra
+tomcat_install_dir: /opt/apache
+nginx_ssl_dir: /etc/nginx/certs/
+box_install_dir: /opt/www/sogaz/box/
+server_install_dir:  /opt/apache/catalina_base
+jenkins_api_username: george.kirillov@soft-machine.ru
+jenkins_api_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          62343964383466336632313730306466306432383731366535363461353737386466653534373765
+          3161326162636436316537623435626239323264363165610a656565363263663762366537383333
+          63353033336239613931643334636434623762386633313865653665616338633830356565663864
+          6164326164313237310a336538373131383264653165626238646363646339396631376666343830
+          36346164373939613938306137373437373766383063626130633761383861373561393263393830
+          3032313331383638363166613363663031366334373161356663
+...

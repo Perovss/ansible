@@ -1,0 +1,37 @@
+---
+
+- name: Check ifupdown
+  stat:
+    path: /etc/network/interfaces.d/50-cloud-init.cfg
+  register: ifupdown
+
+- name: Check netplan
+  stat:
+    path: /etc/netplan/50-cloud-init.yaml
+  register: netplan
+
+- name: Get local interfaces
+  set_fact:
+    local_interfaces:  "{{local_interfaces|default([]) + [hostvars[inventory_hostname]['ansible_' + item ]]}}"
+  loop: "{{ansible_interfaces}}"
+  when: |
+    hostvars[inventory_hostname]['ansible_' + item ]['ipv4']['address'] is defined
+     and
+    hostvars[inventory_hostname]['ansible_' + item ]['type'] == 'ether'
+     and
+    hostvars[inventory_hostname]['ansible_' + item ]['ipv4']['address'] | ipaddr('private')
+
+- name: Get bridge interfaces
+  set_fact:
+    bridge_interfaces:  "{{bridge_interfaces|default([]) + [hostvars[inventory_hostname]['ansible_' + item ]]}}"
+  loop: "{{ansible_interfaces}}"
+  when: |
+    hostvars[inventory_hostname]['ansible_' + item ]['ipv4']['address'] is defined
+      and
+    hostvars[inventory_hostname]['ansible_' + item ]['type'] == 'bridge'
+
+- name: Generate cidr client vpn network
+  set_fact:
+    bridge_ip: "172.28.{{ansible_default_ipv4.network.split('.')[1]}}.1/24"
+  when: (bridge_interfaces is not defined) or (bridge_interfaces|length == 0)
+...

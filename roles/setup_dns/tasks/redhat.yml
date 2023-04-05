@@ -1,0 +1,10 @@
+---
+- name: change dns server for rhel
+  copy:
+    dest: /etc/resolv.conf 
+    content: |
+      {% for nameserver in nameservers %}    
+      nameserver {{nameserver}}
+      {% endfor %}
+  become: true    
+...

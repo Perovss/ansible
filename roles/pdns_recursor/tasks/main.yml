@@ -1,0 +1,42 @@
+---
+- name: Install pdns-recursor package
+  apt:
+    name: pdns-recursor
+  register: apt_result
+  until: apt_result is not failed
+  retries: 5
+  delay: 15
+  ignore_errors: yes
+  become: true
+  tags:
+    - install
+
+- name: Generate the PowerDNS Recursor configuration
+  template:
+    src: recursor.conf.j2
+    dest: /etc/powerdns/recursor.conf
+  become: true
+  notify: restart pdns-recursor
+  tags:
+    - config
+
+- name: disable binding to port 53 for systemd-resolved
+  replace:
+    path: /etc/systemd/resolved.conf
+    regexp: "^#DNSStubListener=yes$"
+    replace: 'DNSStubListener=no'
+  become: true
+  notify: restart systemd-resolved
+  tags:
+    - config
+
+- name: Generate the PowerDNS hosts file
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+  become: true
+  notify: restart pdns-recursor
+  when: pdns_rec_config.export_etc_hosts is defined and pdns_rec_config.export_etc_hosts
+  tags:
+    - config
+

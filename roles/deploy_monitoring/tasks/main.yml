@@ -1,0 +1,34 @@
+---
+- name: deploy config prometheus
+  copy:
+    src: prometheus
+    dest: /srv/
+  become: yes
+
+- name: deploy config alertmanager
+  copy:
+    src: alertmanager
+    dest: /srv/
+  become: yes
+
+- name: deploy grafana dashboards
+  copy:
+    src: grafana
+    dest: /srv/
+  become: yes
+
+- name: template compose file
+  template:
+    src: docker-compose.yml
+    dest: /srv/docker-compose.yml
+  become: yes
+
+- name: Set python env
+  set_fact:
+    ansible_python_interpreter: "{{ansible_env.HOME}}/.pyenv/shims/python"
+
+- name: deploy compose
+  docker_compose:
+    project_src: /srv/
+  become: yes
+...

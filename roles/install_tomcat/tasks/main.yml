@@ -1,0 +1,88 @@
+---
+
+- name: check to see if tomcat is already installed
+  stat:
+    path: "{{tomcat_install_dir}}"
+  register: stat_result
+  become: yes
+
+- block:
+  - name: ensure tomcat user exist
+    user:
+      name: "{{tomcat_user | default('tomcat', true)}}"
+      state: present
+    become: true
+
+  - name: Download Apache Tomcat
+    get_url:
+      url: "{{tomcat_download_url}}"
+      dest: /tmp/
+    register: get_url_result  
+
+  - name: Create a directory if it does not exist
+    file:
+      path: "{{tomcat_install_dir | default('/opt/apache', true)}}"
+      state: directory
+      mode: "0755"
+    become: true
+
+  - name: Unarchive Apache Tomcat
+    unarchive:
+      src: "{{get_url_result.dest}}"
+      dest: "{{tomcat_install_dir | default('/opt/apache', true)}}"
+      remote_src: yes
+    register: unarchive_result  
+    become: true
+
+  - name: Change file ownership, group and permissions
+    file:
+      path: "{{tomcat_install_dir | default('/opt/apache', true)}}/{{unarchive_result.src | basename | splitext | first }}"
+      owner: "{{tomcat_user | default('tomcat', true)}}"
+      group: "{{tomcat_user | default('tomcat', true)}}"
+      mode: '0755'
+      recurse: yes
+    become: true
+
+  - name: Create dir catalina_base
+    file:
+      path: "{{tomcat_install_dir | default('/opt/apache', true)}}/catalina_base/{{ item}}"
+      owner: "{{tomcat_user | default('tomcat', true)}}"
+      group: "{{tomcat_user | default('tomcat', true)}}"
+      mode: '0755'
+      state: directory
+    loop:
+      - bin
+      - con
+      - lib
+      - logs
+      - shared
+      - temp
+      - webapps
+      - work
+    become: true
+
+  - name: Create a symbolic link
+    file:
+      src: "{{tomcat_install_dir | default('/opt/apache', true)}}/{{unarchive_result.src | basename | splitext | first }}"
+      dest: "{{tomcat_install_dir | default('/opt/apache', true)}}/tomcat"
+      owner: "{{tomcat_user | default('tomcat', true)}}"
+      group: "{{tomcat_user | default('tomcat', true)}}"
+      mode: '0777'
+      state: link
+    become: true
+
+  - name: Create a init script for tomcat
+    copy:
+      src: init.d/tomcat
+      dest: /etc/init.d/tomcat
+      mode: '0755'
+    become: true
+
+  - name: Start service tomcat
+    service:
+      name: tomcat
+      state: started
+    become: true
+  when: stat_result.stat.exists == False
+
+...

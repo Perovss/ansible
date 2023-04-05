@@ -1,0 +1,24 @@
+---
+- name: Install maven
+  package:
+    name: maven
+    state: present
+  become: true
+
+- name: Create directory if it does not exist
+  file:
+    path: '{{bamboo_master_data_folder}}/.m2/repository'
+    owner: "{{bamboo_master_user}}"
+    group: "{{bamboo_master_user}}"
+    state: directory
+    mode: "0755"
+
+- name: copy maven config
+  template:
+    src: settings.xml
+    dest: '{{bamboo_master_data_folder}}/.m2/'
+
+- name: install nodejs
+  include_role:
+    name: install_nodejs
+...

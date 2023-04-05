@@ -1,0 +1,115 @@
+{
+  "index_patterns" : [
+    "docker-*",
+    "elk-*",
+    "kubernetes-*",
+    "mongo-*",
+    "nginx-*",
+    "sogaz-*",
+    "system-*",
+    "was-*",
+    "openvpn-*",
+    "quagga-*",
+    "cppk-*",
+    "postgres-*"
+  ],
+  "settings" : {
+    "index" : {
+      "number_of_shards" : "1",
+      "refresh_interval" : "5s",
+      "highlight": {
+        "max_analyzed_offset": "10000000"
+      },
+      "lifecycle" : {
+        "name" : "{{ilm_policy_name}}"
+      }
+    }
+  },
+  "mappings" : {
+    "dynamic_templates" : [
+      {
+        "all_field" : {
+          "mapping" : {
+            "norms" : false,
+            "type" : "text"
+          },
+          "match_mapping_type" : "string"
+        }
+      }
+    ],
+    "properties" : {
+      "@timestamp" : {
+        "type" : "date"
+      },
+      "geoip" : {
+        "dynamic" : true,
+        "properties" : {
+          "ip" : {
+            "type" : "ip"
+          },
+          "latitude" : {
+            "type" : "half_float"
+          },
+          "location" : {
+            "type" : "geo_point"
+          },
+          "longitude" : {
+            "type" : "half_float"
+          }
+        }
+      },
+      "@version" : {
+        "type" : "keyword"
+      },
+      "response_raw" : {
+        "type": "object",
+        "enabled" : false
+      },
+      "nginx.access.geoip.city_name": {
+        "type": "text",
+        "fielddata": true
+      },
+      "nginx.access.geoip.country_name": {
+        "type": "text",
+        "fielddata": true
+      },
+      "nginx.access.geoip.ip": {
+        "type": "text",
+        "fielddata": true
+      },
+      "nginx.access.geoip.latitude": {
+        "type": "text",
+        "fielddata": true
+      },
+      "nginx.access.geoip.longitude": {
+        "type": "text",
+        "fielddata": true
+      },
+      "nginx.access.geoip.region_name": {
+        "type": "text",
+        "fielddata": true
+      },
+      "nginx.access.referrer": {
+        "type": "text",
+        "fielddata": true
+      },
+      "nginx.access.method": {
+        "type": "text",
+        "fielddata": true
+      },
+      "nginx.access.remote_ip": {
+        "type": "text",
+        "fielddata": true
+      },
+      "nginx.access.response_code": {
+        "type": "text",
+        "fielddata": true
+      },
+      "nginx.access.url": {
+        "type": "text",
+        "fielddata": true
+      }
+    }
+  },
+  "aliases" : { }
+}

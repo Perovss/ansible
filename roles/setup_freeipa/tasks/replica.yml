@@ -1,0 +1,41 @@
+---
+- name: install freeipa-client
+  command: >
+    /usr/sbin/ipa-client-install
+    --domain="{{ipa_domain_name}}"
+    --server="{{ipa_master_hostname}}"
+    --realm="{{ipa_realm_name}}"
+    --hostname="{{ipa_replica_hostname}}"
+    --principal=admin
+    --password="{{ipa_admin_password}}"
+    --enable-dns-updates
+    -U
+  when:
+  - ipa_role == "replica"
+
+- name: configure replication
+  command: >
+    /usr/sbin/ipa-replica-install
+    --admin-password="{{ipa_admin_password}}"
+    -U
+  when:
+  - ipa_role == "replica"
+
+- name: install dns on replica
+  command: >
+    /usr/sbin/ipa-dns-install
+    --auto-reverse
+    --auto-forwarders
+    -U
+  when:
+  - ipa_role == "replica"
+
+- name: install CA on replica
+  command: >
+    /usr/sbin/ipa-ca-install
+    --password="{{ipa_ds_password}}"
+    -U
+  when:
+  - ipa_role == "replica"
+
+...

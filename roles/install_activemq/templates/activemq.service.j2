@@ -1,0 +1,11 @@
+[Unit]
+Description=activemq message queue
+After=network.target
+[Service]
+PIDFile={{activemq_download_dir }}/{{ activemq_link}}/data/activemq.pid
+ExecStart={{activemq_download_dir }}/{{ activemq_link}}/bin/activemq start
+ExecStop={{activemq_download_dir }}/{{ activemq_link}}/bin/activemq stop
+User=root
+Group=root
+[Install]
+WantedBy=multi-user.target

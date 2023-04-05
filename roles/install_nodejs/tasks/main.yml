@@ -1,0 +1,15 @@
+---
+- name: Download and unpack nodejs
+  unarchive:
+    src: "{{nodejs_download_url}}"
+    dest: "{{nodejs_install_dir}}"
+    remote_src: True
+    creates: '{{nodejs_install_dir}}/{{nodejs_version}}'
+  become: yes
+
+- name: install nodejs
+  shell: 'ln -s {{nodejs_install_dir}}/{{nodejs_version}}/bin/* /usr/local/bin/'
+  args:
+    creates: /usr/local/bin/npm
+  become: yes
+...

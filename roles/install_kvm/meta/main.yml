@@ -1,0 +1,25 @@
+---
+dependencies:
+
+  - role: soft_manage
+    vars:
+      apt_list:
+      - qemu
+      - qemu-kvm
+      - libvirt-bin
+      - libvirt-dev
+
+  - role: set_sysctl
+    vars:
+      sysctl_params:
+        - sysctl_name: "vm.swappiness"
+          sysctl_value: "5"
+
+  - role: manage_python_packages
+    vars:
+      pyenv_virtualenv: ansible_python3
+      python_packages:
+        - libvirt-python
+        - lxml
+
+...

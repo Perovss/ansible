@@ -1,0 +1,33 @@
+---
+- name: Install squid package
+  apt:
+    name: "{{squid_packages}}"
+    state: present
+  become: yes
+  tags: install
+
+- name: copy squid.conf
+  copy:
+    src: squid.conf
+    dest: /etc/squid/
+  become: yes
+  notify:
+   - restart squid
+
+- name: Set python env
+  set_fact:
+    ansible_python_interpreter: "{{ansible_env.HOME}}/.pyenv/shims/python"
+
+- name: create proxy users
+  htpasswd:
+    path: /etc/squid/.squid_users
+    name: "{{item.squid_username}}"
+    password: "{{item.squid_password}}"
+    owner: proxy
+    group: root
+    mode: 0640
+  loop: "{{squid_users}}"
+  become: yes
+  notify:
+   - restart squid
+...

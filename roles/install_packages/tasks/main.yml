@@ -1,0 +1,11 @@
+---
+
+- name: Handle the error if task file current release not exist
+  block:
+    - name: Includeing OS specific tasks for current release 
+      include_tasks: "{{ansible_distribution | lower}}{{ansible_distribution_major_version}}.yml"
+  rescue:
+    - name: Includeing OS specific tasks for os family
+      include_tasks: "{{ansible_os_family | lower}}.yml"
+       
+...

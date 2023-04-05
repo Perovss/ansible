@@ -1,0 +1,27 @@
+---
+- name: disable cloud-init's network configuration
+  copy:
+    dest: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+    content: |
+      network: {config: disabled}
+  become: true
+
+- name: Generate new network config by ifupdown
+  template:
+    src: interfaces.cfg.j2
+    dest: /etc/network/interfaces.d/50-cloud-init.cfg
+  when: |
+    ansible_default_ipv4.address | ipaddr('public') and ifupdown.stat.exists  
+  become: true
+  notify: restart network
+
+- name: Generate new network config by netplan
+  template:
+    src: netplan.yaml.j2
+    dest: /etc/netplan/50-cloud-init.yaml    
+  when: |
+    ansible_default_ipv4.address | ipaddr('private') and netplan.stat.exists  
+  become: true  
+  notify: netplan apply
+
+...

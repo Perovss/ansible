@@ -1,0 +1,30 @@
+---
+packages_list:
+- bash-completion
+- curl
+- mc
+- wget
+- vim
+- git
+- ntp
+- sudo
+- htop
+- atop
+- iotop
+- strace
+- ethtool
+- iperf3
+- gcc
+- gcc-c++
+- autoconf
+- automake
+- binutils
+- make
+- rsync
+- tar
+- unzip
+- p7zip
+- p7zip-plugins
+- ncdu
+- byobu
+...

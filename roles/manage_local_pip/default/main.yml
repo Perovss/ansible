@@ -1,0 +1,9 @@
+---
+local_pip_packages:
+  - package_name: ""
+    local_pip_package_state: ""
+    local_pip_package_version: ""
+    local_pip_virtualenv: ""
+    local_pip_virtualenv_command: ""
+    local_pip_executable: ""
+...

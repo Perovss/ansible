@@ -1,0 +1,13 @@
+---
+update_cache_command: 'apt-get update'
+pyenv_dependency_packages:
+- curl
+- build-essential
+- git
+- libbz2-dev
+- zlib1g-dev
+- libssl-dev
+- libreadline-dev
+- libsqlite3-dev
+- libffi-dev
+- python3-venv

@@ -1,0 +1,26 @@
+---
+- name: Create user if not exist
+  user:
+    name: "{{soapui_user}}"
+    state: present
+  become: true
+
+- name: Create folder if not exist
+  file:
+    path: "{{soapui_dir}}"
+    owner: "{{soapui_user}}"
+    group: "{{soapui_user}}"
+    state: directory
+  become: true
+
+- name: Download and unpack SoapUI
+  unarchive:
+    src: "{{soapui_download_url}}"
+    dest: "{{soapui_dir}}"
+    owner: "{{soapui_user}}"
+    group: "{{soapui_user}}"
+    remote_src: True
+    creates: '{{soapui_dir }}/SoapUI-{{ soapui_version}}'
+  changed_when: False
+  become: yes
+...

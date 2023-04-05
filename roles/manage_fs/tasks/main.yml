@@ -1,0 +1,8 @@
+---
+- name: Create filesystem
+  filesystem:
+    fstype: "{{item.filesystem_fstype | default('ext4',true)}}"
+    dev: "{{item.filesystem_dev}}"
+  loop: "{{filesystem_params}}"
+  become: yes
+...

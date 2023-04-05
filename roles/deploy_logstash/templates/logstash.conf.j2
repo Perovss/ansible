@@ -1,0 +1,224 @@
+input {
+  beats {
+    port => 5044
+  }
+}
+filter {
+  if [service][type] {
+    mutate {
+      add_field => { "type" => "%{[service][type]}" }
+      remove_field => "[service][type]"
+    }
+  }
+
+  # Remove ANSI colors from message
+  mutate {
+    gsub => ["message", "\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]", ""]
+  }
+
+  # mutate {
+  #   add_field => { "[debug][message]" => "%{[message]}" }
+  # }
+
+  if [type] == "nginx" {
+    if [event][module] == "nginx" {
+      if [fileset][name] == "access" or [fileset][name] == "ingress_controller" {
+        grok {
+          match => { "message" => ["%{IPORHOST:[nginx][access][remote_ip]} - %{DATA:[nginx][access][user_name]} \[%{HTTPDATE:[nginx][access][time]}\] \"((%{WORD:[nginx][access][method]} %{DATA:[nginx][access][url]} HTTP/%{NUMBER:[nginx][access][http_version]})|(%{DATA:[nginx][access][raw]}))\" %{NUMBER:[nginx][access][response_code]} %{NUMBER:[nginx][access][body_sent][bytes]} \"%{DATA:[nginx][access][referrer]}\" \"%{DATA:[nginx][access][agent]}\""] }
+          overwrite => [ "message" ]
+        }
+        date {
+          match => [ "[nginx][access][time]", "dd/MMM/YYYY:H:m:s Z" ]
+          remove_field => "[nginx][access][time]"
+        }
+        useragent {
+          source => "[nginx][access][agent]"
+          target => "[nginx][access][user_agent]"
+          remove_field => "[nginx][access][agent]"
+        }
+        geoip {
+          source => "[nginx][access][remote_ip]"
+          target => "[nginx][access][geoip]"
+        }
+      }
+      else if [fileset][name] == "error" {
+        grok {
+          match => { "message" => ["%{DATA:[nginx][error][time]} \[%{DATA:[nginx][error][level]}\] %{NUMBER:[nginx][error][pid]}#%{NUMBER:[nginx][error][tid]}: (\*%{NUMBER:[nginx][error][connection_id]} )?%{GREEDYDATA:[nginx][error][message]}"] }
+          overwrite => [ "message" ]
+        }
+        date {
+          match => [ "[nginx][error][time]", "YYYY/MM/dd H:m:s" ]
+          remove_field => "[nginx][error][time]"
+        }
+      }
+    }
+  }
+  else if [type] == "kubernetes" {
+    if [kubernetes][namespace] == "kube-system" {
+      drop {}
+    }
+    if [kubernetes][labels][appId] == "mongo" {
+      mutate {
+        update => {
+          "type" => "mongo"
+        }
+      }
+    }
+    if [kubernetes][node] {
+      mutate {
+        add_field => {
+          "kubernetes_node" => "%{[kubernetes][node][name]}"
+        }
+        remove_field => [
+          "[kubernetes][node]",
+          "[kubernetes][namespace_uid]",
+          "[kubernetes][replicaset][name]",
+          "[container]"
+        ]
+      }
+    }
+    if [kubernetes][namespace] == "gitea" {
+      mutate {
+        gsub => ["message", "\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]", ""]
+      }
+    }
+    if [kubernetes][namespace] in ["ingress", "kong"] {
+      if [kubernetes][container][name] in ["ingress-nginx-controller", "proxy"] {
+        grok {
+          match => { "message" => ["%{IPORHOST:[nginx][access][remote_ip]} - %{DATA:[nginx][access][user_name]} \[%{HTTPDATE:[nginx][access][time]}\] \"((%{WORD:[nginx][access][method]} %{DATA:[nginx][access][url]} HTTP/%{NUMBER:[nginx][access][http_version]})|(%{DATA:[nginx][access][raw]}))\" %{NUMBER:[nginx][access][response_code]} %{NUMBER:[nginx][access][body_sent][bytes]} \"%{DATA:[nginx][access][referrer]}\" \"%{DATA:[nginx][access][agent]}\""] }
+          overwrite => [ "message" ]
+          tag_on_failure => [ "_ingressparsefailure" ]
+        }
+        mutate {
+          add_tag => [ "_ingressaccess" ]
+          remove_field => [
+            "[request][headers][apikey]"
+          ]
+        }
+        date {
+          match => [ "[nginx][access][time]", "dd/MMM/YYYY:H:m:s Z" ]
+          remove_field => "[nginx][access][time]"
+        }
+        useragent {
+          source => "[nginx][access][agent]"
+          target => "[nginx][access][user_agent]"
+          remove_field => "[nginx][access][agent]"
+        }
+        geoip {
+          source => "[nginx][access][remote_ip]"
+          target => "[nginx][access][geoip]"
+        }
+      }
+      else if [kubernetes][container][name] == "ingress-nginx-controller" {
+        grok {
+          match => {
+            "message" => [
+              "time=\"%{TIMESTAMP_ISO8601:eventTime}\" level=%{LOGLEVEL:level} msg=\"%{GREEDYDATA:message}\""
+            ]
+          }
+          overwrite => [ "message" ]
+          tag_on_failure => [ "_kongparsefailure" ]
+        }
+        mutate {
+          gsub => [ "message", "\\n\\t", ""]
+        }
+        date {
+          match => [ "eventTime", "ISO8601" ]
+          remove_field => [ "eventTime" ]
+        }
+      }
+    }
+    else {
+      grok {
+        match => {
+          "message" => [
+            "%{TIMESTAMP_ISO8601:eventTime}\s+%{LOGLEVEL:level}\s+%{WORD:pid} --- \[(\s+)?%{GREEDYDATA:threadName}\]\s+%{WORD:traceId}\s+%{DATA:ApplicationName}\s+:\s+%{GREEDYDATA:message}"
+            ]
+        }
+        overwrite => [ "message" ]
+        tag_on_failure => [ "_rawparsefailure" ]
+      }
+      date {
+        match => [ "eventTime", "ISO8601" ]
+        remove_field => [ "eventTime" ]
+      }
+      grok {
+        match => {
+          "message" => [
+            "%{DATA:message}\n%{GREEDYDATA:response_raw}"
+          ]
+        }
+        overwrite => [ "message" ]
+        tag_on_failure => [ "_responseparsefailure" ]
+      }
+      # only for events with field
+      if [response_raw] and ([kubernetes][namespace] not in ["event-processor", "k8s-ssh-auth", "gitea"]) {
+        mutate {
+          add_field => {
+            "message_cut" => "%{response_raw}"
+          }
+        }
+        truncate {
+          length_bytes => 200
+          fields => [ "message_cut" ]
+        }
+      }
+    }
+  }
+  else if [type] in ["deprecation", "error", "log", "server", "response"] {
+    mutate {
+      add_field => {
+        "elk.type" => [type]
+      }
+      update => {
+        "type" => "elk"
+      }
+    }
+  }
+  else if [type] == "was" {
+    grok {
+      match => {
+        "message" => [
+          "%{TIMESTAMP_ISO8601:eventTime} \[%{LOGLEVEL:level}(\s+)?\] %{GREEDYDATA:message}"
+        ]
+      }
+      overwrite => [ "message" ]
+      tag_on_failure => [ "_wasparsefailure" ]
+    }
+    date {
+      match => [ "eventTime", "yyyy-MM-dd HH:mm:ss.S" ]
+    }
+    kv {
+      remove_char_key => "<>\[\],\(\) "
+      remove_char_value => "<>\[\],\(\) "
+    }
+    mutate {
+      remove_field => [
+        "eventTime"
+        # "message"
+      ]
+    }
+  }
+  else {
+    mutate {
+      add_tag => [ "_raw" ]
+    }
+  }
+  # Remove filebeat fields
+  mutate {
+    add_field => {
+      "filebeat_version" => "%{[agent][version]}"
+    }
+    remove_field => "[agent]"
+    remove_tag => "beats_input_codec_plain_applied"
+  }
+}
+output {
+  elasticsearch {
+    hosts => ["{{elastic_master}}:9200"]
+    index => "%{[type]}-%{+YYYY.MM.dd}"
+    template => "/usr/share/logstash/config/logstash.json"
+    template_name => "logstash"
+    template_overwrite => true
+  }
+}

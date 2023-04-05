@@ -1,0 +1,35 @@
+---
+- name: changing ownership
+  file:
+    state: directory
+    recurse: yes
+    path: /mattermost/volumes/app/mattermost
+    owner: '2000'
+    group: '2000'
+  become: yes
+
+- name: copy env-file
+  copy:
+    src: .env
+    dest: '/mattermost/.env'
+  become: yes
+
+- name: copy certificate
+  copy:
+    src: tourmachine.ru.ca.crt
+    dest: '/mattermost/volumes/web/cert/cert.pem/'
+  become: yes
+
+- name: copy key
+  copy:
+    src: tourmachine.ru.key
+    dest: '/mattermost/volumes/web/cert/key-no-password.pem/'
+  become: yes
+
+
+- name: template compose file
+  template:
+    src: docker-compose.yml
+    dest: /mattermost/docker-compose.yml
+  become: yes
+...

@@ -1,0 +1,105 @@
+---
+- name: Ensure oracle_exporter group
+  group:
+    name: "{{oracle_exporter_group}}"
+    system: yes
+    state: present
+  become: True
+
+- name:  Ensure oracle_exporter user
+  user:
+    name: "{{oracle_exporter_user}}"
+    group: "{{oracle_exporter_group}}"
+    shell: /bin/bash
+  become: True
+
+- name:  Ensure paths
+  file:
+    dest: "{{item}}"
+    owner: "{{oracle_exporter_user}}"
+    group: "{{oracle_exporter_group}}"
+    state: directory
+  loop: "{{oracle_exporter_paths}}"
+  become: True
+
+- name:  Ensure log paths
+  file:
+    dest: "{{oracle_exporter_log_path}}"
+    owner: "{{oracle_exporter_user}}"
+    group: "{{oracle_exporter_group}}"
+    state: directory
+  become: True
+  when: oracle_exporter_log_path is defined
+
+- name:  Check oracle_exporter version
+  command: "cat {{oracle_exporter_installed_version}}"
+  register: oracle_exporter_check
+  changed_when: false
+  ignore_errors: true
+  become: True
+
+- name:  Copy oracle-instantclient rpm
+  copy:
+    src: "{{oracle_instant_client_rpm}}"
+    dest: '/usr/local/src/{{oracle_instant_client_rpm}}'
+  become: True
+
+- name: install oracle-instantclient rpm from a local file
+  yum:
+    name: '/usr/local/src/{{oracle_instant_client_rpm}}'
+    state: present
+  become: True
+
+- name:  Download package
+  get_url:
+    url: "{{oracle_exporter_url}}"
+    dest: "{{oracle_exporter_package_path}}"
+  become: True
+  when: oracle_exporter_force_reinstall or oracle_exporter_check is failed or oracle_exporter_version not in oracle_exporter_check.stderr
+
+- name:  Extract downloaded package
+  unarchive:
+    src: "{{oracle_exporter_package_path}}"
+    dest: "{{oracle_exporter_download_path}}"
+    remote_src: True
+  become: True
+  when: oracle_exporter_force_reinstall or oracle_exporter_check is failed or oracle_exporter_version  not in oracle_exporter_check.stderr
+
+- name:  Copy binary
+  copy:
+    src: "{{oracle_exporter_src_bin}}"
+    dest: "{{oracle_exporter_bin_path}}/oracledb_exporter"
+    owner: "{{oracle_exporter_user}}"
+    group: "{{oracle_exporter_group}}"
+    remote_src: True
+    mode: 0755
+  become: True
+  when: oracle_exporter_force_reinstall or oracle_exporter_check is failed or oracle_exporter_version not in oracle_exporter_check.stderr
+
+- name:  Copy version number file
+  template:
+    src: version.txt.j2
+    dest: "{{oracle_exporter_installed_version}}"
+    owner: "{{oracle_exporter_user}}"
+    group: "{{oracle_exporter_group}}"
+    mode: 0644
+  become: True
+
+- name:  Copy default metrics
+  copy:
+    src: "{{oracle_exporter_src_metrics}}"
+    dest: "{{oracle_exporter_default_metrics}}"
+    owner: "{{oracle_exporter_user}}"
+    group: "{{oracle_exporter_group}}"
+    remote_src: True
+    mode: 0644
+  become: True
+  when: oracle_exporter_force_reinstall or oracle_exporter_check is failed or oracle_exporter_version not in oracle_exporter_check.stderr and oracle_exporter_custom_metrics_path is not defined
+
+- name:  Link binary
+  file:
+    src: "{{oracle_exporter_bin_path}}/oracledb_exporter"
+    dest: "/usr/bin/oracledb_exporter"
+    state: link
+  become: True
+  when: oracle_exporter_force_reinstall or oracle_exporter_check is failed or oracle_exporter_version not in oracle_exporter_check.stderr

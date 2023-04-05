@@ -1,0 +1,11 @@
+---
+- name: setup pam_limits
+  pam_limits:
+    domain: "{{item.pam_limits_domain}}"
+    limit_type: "{{item.pam_limits_type}}"
+    limit_item: "{{item.pam_limits_item}}"
+    value: "{{item.pam_limits_value}}"
+    use_max: "{{item.pam_limits_use_max | default(omit)}}"
+  become: true
+  loop: "{{pam_limits_params}}"
+...

@@ -1,0 +1,16 @@
+---
+- hosts: microk8s.cipher-link.ru
+  tasks:
+
+  - name: Deploying Kubernetes using MicroK8s
+    import_role:
+      name: install_microk8s
+    vars:
+      microk8s_enable_HA: false
+      microk8s_addons:
+      - rbac
+      - dns
+      - storage
+    tags: k8s
+
+...

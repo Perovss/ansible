@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Удаляем маршрут по-умолчанию
+/sbin/ip route del default
+# Поднимаем дополнительные интерфейсы
+/sbin/ifup ens3:mgmt
+/sbin/ifup ens3.9
+/sbin/ifup ens3.50
+/sbin/ifup ens3.255
+/sbin/ifup ens3.114
+/sbin/ifup br0-vpn
+/sbin/ifup ens3.1001
+/sbin/ifup ens3.1002
+# Запуск нужных сервисов
+/usr/sbin/service openvpn start
+/usr/sbin/service isc-dhcp-server start
+/usr/sbin/service pdns-recursor start
+# Доступность с обоих провайдеров.
+/sbin/ip route add default via 91.151.199.37 table 201
+/sbin/ip route add default via 80.76.241.101 table 202
+/sbin/ip rule add from 91.151.199.38 table 201
+/sbin/ip rule add from 80.76.241.102 table 202

@@ -1,0 +1,18 @@
+---
+pdns_rec_config: {}
+# pdns_rec_config:
+#  allow_from: '127.0.0.1/8,192.168.2.0/24'
+#  local_address: 0.0.0.0
+#  export_etc_hosts_search_suffix: home.com
+#  local_port: 53
+#  export_etc_hosts: yes
+#  etc_hosts_file: /etc/powerdns/hosts
+#  quiet: yes
+#  forward_zones:
+#    - "example.com=192.0.2.2:5300;192.0.2.128"
+#    - "foo.example.com=2001:db8::abcd:1;[2001:db8::ef99]:5300"
+
+pdns_hosts_file: {}
+#  - domain_name:
+#    ip_address:
+

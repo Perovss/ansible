@@ -1,0 +1,5 @@
+---
+influxdb_database_name: graphite
+influxdb_user: admin
+influxdb_password: admin   
+...

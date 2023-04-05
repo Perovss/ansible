@@ -1,0 +1,26 @@
+---
+- name: Download and unpack activemq
+  unarchive:
+    src: "{{activemq_download_url}}"
+    dest: "{{activemq_download_dir}}"
+    remote_src: True
+    creates: "{{activemq_current_install_dir}}"
+  changed_when: False
+  become: yes
+
+- name: Create a symbolic link (for future updates)
+  file:
+    src: "{{activemq_current_install_dir}}"
+    dest: '{{activemq_download_dir }}/{{ activemq_link}}'
+    state: link
+  become: yes
+  notify: enable & restart activemq
+
+- name: Install activemq systemd unit script
+  template:
+    src: activemq.service.j2
+    dest: /etc/systemd/system/activemq.service
+    mode: 0744
+  become: yes
+  notify: enable & restart activemq
+...

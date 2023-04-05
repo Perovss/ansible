@@ -1,0 +1,4 @@
+127.0.0.1	localhost {{ansible_hostname}}
+{% for pdns_host in pdns_hosts_file %}
+{{pdns_host.ip_address }}  {{ pdns_host.domain_name}}
+{% endfor %}

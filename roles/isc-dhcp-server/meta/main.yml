@@ -1,0 +1,7 @@
+---
+dependencies:
+  - role: soft_manage
+    vars:
+      apt_list:
+      - isc-dhcp-server
+...

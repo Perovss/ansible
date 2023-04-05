@@ -1,0 +1,45 @@
+---
+- name: Create a directory if it does not exist
+  file:
+    path: "{{item}}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{nginx_ssl_dir}}"
+    - "{{box_install_dir}}"
+    - /opt/www/was
+  become: true
+
+- name: Copy ssl certificate
+  copy:
+    src: 'ssl/{{item}}'
+    dest: "{{nginx_ssl_dir}}"
+    mode: '0644'
+  loop:
+    - soft-machine.ru.crt
+    - soft-machine.ru.key
+  become: true
+  notify: restart nginx
+
+- name: Deploy nginx configs
+  copy:
+    src: '{{temp_dir_git}}/test-lpu/nginx/'
+    dest: /etc/nginx
+    remote_src: yes
+  become: yes
+  notify: restart nginx
+
+- name: make robot.txt file
+  copy:
+    content: |
+              User-agent: *
+              Disallow: /
+    dest: /opt/www/was/robots.txt
+  notify: restart nginx
+  become: true
+
+- name: Check NGINX configs
+  shell: "/usr/sbin/nginx -t"
+  changed_when: false
+  become: true
+...

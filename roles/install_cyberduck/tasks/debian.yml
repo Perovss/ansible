@@ -1,0 +1,16 @@
+---
+- name: Add duck repo apt key
+  apt_key:
+    id: FE7097963FEFBE72
+    keyserver: keyserver.ubuntu.com
+    state: present
+  become: true
+
+- name: Add duck repository.
+  apt_repository:
+    repo: "deb https://s3.amazonaws.com/repo.deb.cyberduck.io stable main"
+    state: present
+    filename: cyberduck
+    update_cache: true
+  become: true
+...

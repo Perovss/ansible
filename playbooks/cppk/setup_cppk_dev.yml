@@ -1,0 +1,131 @@
+---
+- hosts: cppk-test.cipher-link.ru
+  become: true
+  vars:
+    java_packages:
+      - java-1.8.0-openjdk.x86_64
+      - java-1.8.0-openjdk-devel.x86_64
+      - java-1.8.0-openjdk-headless.x86_64
+  tasks:
+
+    - name: install nginx
+      import_role:
+        name: install_nginx
+      tags: nginx
+
+    - name: java Install for centos
+      yum:
+        name: "{{java_packages}}"
+        state: present
+        update_cache: yes
+      tags: java
+
+    - name: Copy ssl certificate
+      copy:
+        src: "{{item}}"
+        dest: "/etc/nginx/ssl"
+        mode: '0644'
+      with_fileglob:
+        - "../roles/setup_nginx/files/ssl/soft-machine.tech.*"
+      tags: ssl
+
+    - name: install_tomcat
+      import_role:
+        name: install_tomcat
+      vars:
+        tomcat_download_url: 'http://mirror.linux-ia64.org/apache/tomcat/tomcat-9/v9.0.60/bin/apache-tomcat-9.0.60.zip'
+        tomcat_distr_version: ''
+      tags: tomcat
+
+    - name: logrotate change permissions on nginx logs
+      copy:
+        content: |
+          /var/log/nginx/*.log {
+                  daily
+                  missingok
+                  rotate 52
+                  compress
+                  delaycompress
+                  notifempty
+          	      create 644 nginx adm
+                  sharedscripts
+                  postrotate
+                          if [ -f /var/run/nginx.pid ]; then
+                                  kill -USR1 `cat /var/run/nginx.pid`
+                          fi
+                  endscript
+          }
+        dest: /etc/logrotate.d/nginx
+      tags: logrotate
+
+    - name: Create dir for logs app
+      file:
+        path: "/opt/{{ item}}"
+        owner: "{{tomcat_user | default('tomcat', true)}}"
+        group: "{{tomcat_user | default('tomcat', true)}}"
+        mode: '0755'
+        state: directory
+      loop:
+      - cppk/logs
+      - cppk/ftp-download
+      tags: dirs
+
+- hosts: nginx-lb.cipher-link.ru
+  become: true
+  pre_tasks:
+  - raw: apt-get install -y python-simplejson
+  vars:
+    domain_name: cppk-test.cipher-link.ru
+    letsencrypt_email: george.kirillov@soft-machine.ru
+  tasks:
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: latest
+    - name: install letsencrypt
+      apt:
+        name: letsencrypt
+        state: latest
+    - name: create letsencrypt directory
+      file:
+        name: /var/www/letsencrypt
+        state: directory
+    - name: create sites-enabled directory
+      file:
+        name: /etc/nginx/sites-enabled/
+        state: directory
+    - name: Install system nginx config
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+    - name: Install nginx site for letsencrypt requests
+      template:
+        src: nginx-http.j2
+        dest: /etc/nginx/sites-enabled/http
+    - name: Reload nginx to activate letsencrypt site
+      service:
+        name: nginx
+        state: restarted
+    - name: Create letsencrypt certificate
+      shell: letsencrypt certonly -n --webroot -w /var/www/letsencrypt -m {{ letsencrypt_email }} --agree-tos -d {{ domain_name }}
+      args:
+        creates: /etc/letsencrypt/live/{{ domain_name }}
+    - name: Generate dhparams
+      shell: openssl dhparam -out /etc/nginx/dhparams.pem 2048
+      args:
+        creates: /etc/nginx/dhparams.pem
+    - name: Install nginx site for specified site
+      template:
+        src: nginx-le.j2
+        dest: /etc/nginx/sites-enabled/le
+    - name: Reload nginx to activate specified site
+      service: name=nginx state=restarted
+    - name: Add letsencrypt cronjob for cert renewal
+      cron:
+        name: letsencrypt_renewal
+        special_time: weekly
+        job: letsencrypt --renew certonly -n --webroot -w /var/www/letsencrypt -m {{ letsencrypt_email }} --agree-tos -d {{ domain_name }} && service nginx reload
+
+
+
+...

@@ -1,0 +1,28 @@
+---
+
+- name: Check libreoffice tarball
+  stat:
+    path: '/tmp/{{libreoffice_tarball}}.tar.gz'
+  register: tarball
+
+- name: Download libreoffice rpm tar ball
+  get_url:
+   url: "{{libreoffice_download_url}}"
+   dest: /tmp/
+   username: "{{nexus_user}}"
+   password: "{{nexus_password}}"
+  when: not tarball.stat.exists
+
+- name: Unpack libreoffice rpm tar ball
+  unarchive:
+    src: '/tmp/{{libreoffice_download_url | basename}}'
+    dest: /tmp/
+    remote_src: yes
+  changed_when: False
+
+- name: install libreoffice from local rpm
+  yum:
+    name: '{{libreoffice_required_rpm}}'
+    state: present
+  become: yes
+...

@@ -1,0 +1,25 @@
+---
+- hosts: all
+  tasks:
+
+    - name: create groups
+      include_role:
+        name: group
+      tags: group 
+
+    - name: create users 
+      include_role:
+        name: user
+      tags: user
+
+    - name: adding ssh key
+      include_role:
+        name: authorized_key
+      tags: ssh 
+
+    - name: setup bashrc
+      include_role:
+        name: bashrc
+      tags: bashrc 
+
+...

@@ -1,0 +1,18 @@
+---
+- name: Deploy private ssh key for jenkins user
+  copy:
+    src: jenkins_ci_for_bitbacket
+    dest: '{{ansible_env.HOME}}/.ssh/id_rsa'
+    mode: '0600'
+
+- name: Clone configs repo
+  git:
+    repo: 'git@bitbucket.org:softmachinespb/was-infra.git'
+    dest: "{{temp_dir_git}}"
+    accept_hostkey: yes
+
+- name: Delete private ssh key for jenkins user
+  file:
+    path: '{{ansible_env.HOME}}/.ssh/id_rsa'
+    state: absent
+...

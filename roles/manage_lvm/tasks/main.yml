@@ -1,0 +1,11 @@
+---
+- name: manage a logical volume
+  lvol:
+    vg: "{{item.lvol_vg}}"
+    lv: "{{item.lvol_lv}}"
+    size: "{{item.lvol_size}}"
+    state: "{{item.lvol_state | default('present',true)}}"
+    force: yes
+  become: yes
+  loop: "{{lvol_params}}"
+...

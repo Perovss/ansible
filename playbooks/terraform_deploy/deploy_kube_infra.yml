@@ -1,0 +1,58 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+
+  - name: Create Terraform project
+    terraform:
+      project_path: '../../../terraform/projects/kube-infra'
+      variables_file: '../../../terraform/projects/kube-infra/secrets.tfvars'
+      state: present
+    register: tf_create_project
+
+  - name: Create Terraform resource
+    terraform:
+      project_path: '../../../terraform/resources/kube-infra'
+      variables_file: '../../../terraform/resources/kube-infra/secrets.tfvars'
+      state: present
+    register: tf_create_resource
+
+  - name: Add host to inventory
+    add_host:
+      hostname: kube-infra-vpn-router.soft-machine.tech
+      groups: selectel
+      ansible_ssh_host: "{{tf_create_resource.outputs.vpn_external_ip.value | join('\n')}}"
+    changed_when: false
+
+  - name: wait for instance create
+    pause:
+      minutes: 2
+    when: tf_create_resource.changed
+
+- hosts: kube-infra-vpn-router.soft-machine.tech
+  vars:
+    kube_network: "10.222.0.0/16"
+    kube_router: "172.31.180.1"
+  tasks:
+
+    - name: setup openvpn server
+      import_role:
+        name: vpn_router
+      vars:
+        vlan_id: 55
+        kube_network: "10.222.0.0/16"
+
+    - name: configure routes to kube environment
+      shell: ip route add {{kube_network }} via {{ kube_router}}
+      ignore_errors: yes
+      become: yes
+      tags: routes
+
+    - name: Set timezone
+      timezone:
+        name: Europe/Moscow
+      become: yes
+      tags: timezone
+
+...

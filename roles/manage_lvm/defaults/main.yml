@@ -1,0 +1,7 @@
+---
+lvol_params:
+- lvol_vg: ""
+  lvol_lv: ""
+  lvol_size: ""
+  lvol_state: ""
+...

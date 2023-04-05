@@ -1,0 +1,28 @@
+---
+nginx_exporter_user: nginx_exporter
+nginx_exporter_user_manage: true
+nginx_exporter_group: nginx_exporter
+nginx_exporter_group_manage: true
+prometheus_exporter_dist_dir: "/srv"
+prometheus_exporter_dir: "/opt"
+nginx_exporter_version: "0.8.0"
+nginx_exporter_platform_suffix: "linux-amd64"
+
+nginx_exporter_signature: "nginx-prometheus-exporter-{{nginx_exporter_version }}-{{ nginx_exporter_platform_suffix}}"
+nginx_exporter_dist_dir: "{{prometheus_exporter_dist_dir }}/{{ nginx_exporter_signature}}"
+nginx_exporter_tarball_url: "https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v{{nginx_exporter_version }}/{{ nginx_exporter_signature}}.tar.gz"
+nginx_exporter_program: "{{prometheus_exporter_dir}}/nginx_exporter"
+nginx_exporter_home: "/var/lib/nginx_exporter"
+nginx_exporter_home_manage: true
+nginx_exporter_options:
+  - '-nginx.retries 32768'
+  - '-nginx.scrape-uri http://localhost/nginx_status'
+
+nginx_exporter_config_file: /etc/default/nginx_exporter
+nginx_exporter_pid_path: "/var/run"
+nginx_exporter_log_path: "/var/log/nginx_exporter"
+
+nginx_exporter_service_manage: true
+nginx_exporter_service_enable: true
+nginx_exporter_service_state: started
+nginx_exporter_service_notify: true

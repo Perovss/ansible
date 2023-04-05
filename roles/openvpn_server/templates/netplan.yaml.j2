@@ -1,0 +1,26 @@
+network:
+    ethernets:
+        {{ansible_default_ipv4.interface}}:
+            dhcp4: true
+            dhcp6: false
+            match:
+                macaddress: {{ansible_default_ipv4.macaddress}} 
+            set-name: {{ansible_default_ipv4.interface}}
+    version: 2
+    bridges:
+{% if bridge_interfaces is not defined %}    
+        {{br_interface}}:
+            addresses: [ {{bridge_ip | ipaddr('address')}}/24 ]
+            interfaces: [ vlan{{vlan_id}} ]
+{% else %}
+{% for bridge_interface in bridge_interfaces %}
+        {{bridge_interface.device}}:
+            addresses: [ {{bridge_interface.ipv4.address }}/24 ]
+            interfaces: [ vlan{{vlan_id}} ]
+{% endfor %}
+{% endif %}                        
+    vlans:
+        vlan{{vlan_id}}:
+            id: {{vlan_id}}
+            link: {{ansible_default_ipv4.interface}}
+            

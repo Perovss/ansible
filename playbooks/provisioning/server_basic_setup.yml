@@ -1,0 +1,10 @@
+---
+- hosts: all
+  vars:
+    ansible_user: ubuntu
+  tasks:
+
+    - name: preinstall a new server
+      import_role:
+        name: instance_provisioning
+...

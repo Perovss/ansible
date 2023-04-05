@@ -1,0 +1,50 @@
+---
+- name: Refresh network facts
+  setup:
+    gather_subset: network
+
+- name: Flush vars
+  set_fact:
+    local_interfaces: []
+    bridge_interfaces: []
+
+- name: Get local interfaces
+  set_fact:
+    local_interfaces:  "{{local_interfaces|default([]) + [hostvars[inventory_hostname]['ansible_' + item ]]}}"
+  loop: "{{ansible_interfaces}}"
+  when: |
+   hostvars[inventory_hostname]['ansible_' + item ]['ipv4']['address'] is defined
+    and
+   hostvars[inventory_hostname]['ansible_' + item ]['type'] == 'ether'
+    and
+   hostvars[inventory_hostname]['ansible_' + item ]['ipv4']['address'] | ipaddr('private')
+
+- name: Get ovpn p2p interfaces
+  set_fact:
+    ovpn_p2p_interfaces:  "{{ovpn_p2p_interfaces|default([]) + [hostvars[inventory_hostname]['ansible_' + item ]]}}"
+  loop: "{{ansible_interfaces}}"
+  when: |
+   hostvars[inventory_hostname]['ansible_' + item ]['type'] == 'tunnel'
+    and
+   hostvars[inventory_hostname]['ansible_' + item ]['ipv4']['netmask'] == '255.255.255.255'
+- name: Get bridge interfaces
+  set_fact:
+    bridge_interfaces:  "{{bridge_interfaces|default([]) + [hostvars[inventory_hostname]['ansible_' + item ]]}}"
+  loop: "{{ansible_interfaces}}"
+  when: |
+    hostvars[inventory_hostname]['ansible_' + item ]['ipv4']['address'] is defined
+    and
+    hostvars[inventory_hostname]['ansible_' + item ]['type'] == 'bridge'
+
+- name: Get ovpn tun users interfaces
+  set_fact:
+    ovpn_tun_users_interfaces:  "{{ovpn_tun_users_interfaces|default([]) + [hostvars[inventory_hostname]['ansible_' + item ]]}}"
+  loop: "{{ansible_interfaces}}"
+  when: |
+    hostvars[inventory_hostname]['ansible_' + item ]['ipv4']['address'] is defined
+     and
+    hostvars[inventory_hostname]['ansible_' + item ]['type'] == 'tunnel'
+     and
+    hostvars[inventory_hostname]['ansible_' + item ]['ipv4']['netmask'] == '255.255.255.0'
+
+...

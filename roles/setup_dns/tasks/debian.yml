@@ -1,0 +1,24 @@
+---
+- name: install resolvconf
+  apt:
+    name: resolvconf
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  register: apt_result
+  until: apt_result is not failed
+  retries: 3
+  delay: 30
+  ignore_errors: yes    
+  become: true
+
+- name: change dns server for deb
+  copy:
+    dest: /etc/resolvconf/resolv.conf.d/head 
+    content: |
+      {% for nameserver in nameservers %}    
+      nameserver {{nameserver}}
+      {% endfor %}
+  become: true  
+  notify: restart resolvconf
+...

@@ -1,0 +1,9 @@
+---
+- name: restart nginx
+  shell: docker container exec nginx nginx -t && docker container exec nginx nginx -s reload
+  become: true
+
+- name: restart logstash
+  shell: docker restart logstash
+  become: true
+...

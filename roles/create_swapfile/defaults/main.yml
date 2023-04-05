@@ -1,0 +1,5 @@
+---
+swapfile_path: /swapfile
+swapfile_bs_size_mb: 1
+swapfile_count: "{{(ansible_memtotal_mb * 2)|round|int if ansible_memtotal_mb <= 2048 else (ansible_memtotal_mb * 1 + 2048)|round|int}}"
+...

@@ -1,0 +1,17 @@
+---
+- name: switch pyenv
+  template:
+    src: python-version.j2
+    dest: '{{ansible_env.HOME}}/.python-version'
+
+
+- name: pip install package in pyenv
+  pip:
+    name: "{{item}}"
+    state: "{{pip_state | default('present',true)}}"
+    executable: "{{pip_executable | default('pip3.6',true)}}"
+  environment:
+    PATH: '{{ansible_env.HOME }}/.pyenv/bin:{{ ansible_env.HOME }}/.pyenv/shims:{{ ansible_env.PATH}}'
+    PYENV_VERSION: "{{pyenv_virtualenv}}"
+  loop: "{{python_packages}}"
+...

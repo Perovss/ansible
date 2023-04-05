@@ -1,0 +1,55 @@
+hostname {{inventory_hostname_short}}
+password {{ospfd_password}}
+{% if ( (ospfd_logging is defined and ospfd_logging | length) and
+ ( ospfd_logging == 'file' and quagga_logs_dir is defined ) and
+ ( quagga_logs_dir | length and ospfd_log_file is defined ) and
+ ( ospfd_log_file | length and ospfd_log_level is defined ) and
+ ( ospfd_log_level | length) ) %}
+log {{ospfd_logging }} {{ quagga_logs_dir }}/{{ ospfd_log_file }} {{ ospfd_log_level}}
+{% endif %}
+
+{% for local_interface in local_interfaces|sort(attribute='device') %}
+interface {{local_interface.device}}
+ ip ospf area 2
+{% endfor %}
+
+{% if ovpn_p2p_interfaces is defined and ovpn_p2p_interfaces|length %}
+{% for ovpn_p2p_interface in ovpn_p2p_interfaces|sort(attribute='device') %}
+interface {{ovpn_p2p_interface.device}}
+ ip ospf area 0
+{% endfor %}
+{% endif %}
+
+{% if bridge_interfaces is defined and bridge_interfaces|length %}
+{% for bridge_interface in bridge_interfaces|sort(attribute='device') %}
+interface {{bridge_interface.device}}
+ ip ospf area 2
+{% endfor %}
+{% endif %}
+{% if ovpn_tun_users_interfaces is defined and ovpn_tun_users_interfaces|length %}
+{% for ovpn_tun_users_interface in ovpn_tun_users_interfaces|sort(attribute='device') %}
+interface {{ovpn_tun_users_interface.device}}
+ ip ospf area 2
+{% endfor %}
+{% endif %}
+
+router ospf
+{% for local_interface in local_interfaces|sort(attribute='device') %}
+ ospf router-id {{local_interface.ipv4.address}}
+{% endfor %}
+{% if ansible_default_ipv4.address | ipaddr('public') %}
+ passive-interface {{ansible_default_ipv4.interface}}
+{% endif %}
+{% for local_interface in local_interfaces|sort(attribute='device')  %}
+ passive-interface {{local_interface.device}}
+{% endfor %}
+{% if bridge_interfaces is defined and bridge_interfaces|length %}
+{% for bridge_interface in bridge_interfaces|sort(attribute='device') %}
+ passive-interface {{bridge_interface.device}}
+{% endfor %}
+{% endif %}
+{% if ovpn_tun_users_interfaces is defined and ovpn_tun_users_interfaces|length %}
+{% for ovpn_tun_users_interface in ovpn_tun_users_interfaces|sort(attribute='device') %}
+ passive-interface {{ovpn_tun_users_interface.device}}
+{% endfor %}
+{% endif %}

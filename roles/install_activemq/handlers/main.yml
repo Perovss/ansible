@@ -1,0 +1,9 @@
+---
+- name: enable & restart activemq
+  systemd:
+    name: activemq
+    daemon_reload: yes
+    state: started
+    enabled: yes
+  become: yes  
+...

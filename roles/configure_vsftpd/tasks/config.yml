@@ -1,0 +1,31 @@
+---
+- name: Make config vsftp
+  template:
+    src: "{{vsftpd_config_template if vsftpd_config_template else 'etc/vsftpd.conf.j2'}}"
+    dest: "{{vsftpd_config_template_path}}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: restart vsftpd
+
+- name: Configuring pam.d
+  template:
+    src: vsftpd
+    dest: /etc/pam.d/vsftpd
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: restart vsftpd
+
+- name: Create a ftp directory if it does not exist
+  file:
+    path: '{{vsftpd_local_root }}{{ item.username}}'
+    state: directory
+    mode: "0755"
+    owner: "{{vsftpd_guest_username}}"
+    group: "{{vsftpd_guest_username}}"
+  loop: "{{vsftpd_users}}"
+  become: true
+...

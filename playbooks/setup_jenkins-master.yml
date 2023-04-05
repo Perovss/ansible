@@ -1,0 +1,9 @@
+---
+- hosts: jenkins-master.soft-machine.tech
+  tasks:
+
+    - name: deploy compose
+      import_role:
+        name: deploy_compose
+      tags: deploy_compose
+...

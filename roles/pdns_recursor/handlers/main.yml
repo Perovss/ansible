@@ -1,0 +1,14 @@
+---
+- name: restart systemd-resolved
+  systemd:
+    name: systemd-resolved
+    state: restarted    
+  become: yes  
+
+- name: restart pdns-recursor
+  systemd:
+    name: pdns-recursor
+    state: restarted
+    enabled: yes  
+  become: yes
+...

@@ -1,0 +1,26 @@
+---
+
+- name: add apt key for filebeat repository
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+  become: yes
+
+- name: add elastic repofile
+  copy:
+    src: elastic-deb.list
+    dest: /etc/apt/sources.list.d/elastic-deb.list
+  become: yes
+
+- name: install or update filebeat to latest
+  apt:
+    name: filebeat
+    state: latest
+    update_cache: yes
+  register: apt_action
+  retries: 100
+  until: apt_action is success or ('Failed to lock apt for exclusive operation' not in apt_action.msg and '/var/lib/dpkg/lock' not in apt_action.msg)
+  become: yes
+  notify: restart filebeat
+
+...

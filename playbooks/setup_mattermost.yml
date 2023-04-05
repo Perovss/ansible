@@ -1,0 +1,14 @@
+---
+- hosts: mattermost.tourmachine.ru
+  tasks:
+
+  - name: install docker-compose
+    apt:
+      name: docker-compose
+      update_cache: yes
+    become: yes
+
+  - name: setup_mattermost
+    import_role:
+      name: deploy_mattermost
+...

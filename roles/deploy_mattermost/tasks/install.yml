@@ -1,0 +1,6 @@
+---
+- name: deploy compose
+  docker_compose:
+    project_src: /mattermost/
+  become: yes
+...

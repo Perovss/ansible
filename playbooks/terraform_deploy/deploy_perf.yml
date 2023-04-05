@@ -1,0 +1,293 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+
+  - name: Create Terraform project
+    terraform:
+      project_path: '../../../terraform/projects/perf'
+      variables_file: '../../../terraform/projects/perf/secrets.tfvars'
+      state: present
+    register: tf_create_project
+
+  - name: Create Terraform resource
+    terraform:
+      project_path: '../../../terraform/resources/perf'
+      variables_file: '../../../terraform/resources/perf/secrets.tfvars'
+      state: present
+    register: tf_create_resource
+
+  - name: Add host to inventory
+    add_host:
+      hostname: perf-vpn-router.soft-machine.tech
+      groups: selectel
+      ansible_ssh_host: "{{tf_create_resource.outputs.vpn_external_ip.value | join('\n')}}"
+    changed_when: false
+
+  - name: wait for instance create
+    pause:
+      minutes: 2
+    when: tf_create_resource.changed
+
+- hosts: perf-vpn-router.soft-machine.tech
+  tasks:
+
+    - name: setup openvpn server
+      import_role:
+        name: vpn_router
+      vars:
+        vlan_id: 54
+
+    - name: Set timezone
+      timezone:
+        name: Europe/Moscow
+      become: yes
+      tags: timezone
+
+
+- hosts: perf-influxdb.soft-machine.tech
+  tasks:
+
+    - name: install influx
+      import_role:
+        name: install_influxdb
+
+
+- hosts: perf-mock.soft-machine.tech
+  tasks:
+
+    - name: install java 13
+      import_role:
+        name: install_openjdk
+      vars:
+        openjdk_version: 'openjdk13'
+
+    - name: install docker
+      import_role:
+        name: install_docker
+
+    - name: login in private registry
+      import_role:
+        name: docker_login
+
+    - name: install docker-compose in local pip
+      import_role:
+        name: manage_local_pip
+      vars:
+        local_pip_packages:
+        - package_name: docker-compose
+
+    - name: install docker-compose in pyenv
+      import_role:
+        name: manage_python_packages
+      vars:
+        pyenv_virtualenv: ansible_python3
+        python_packages:
+          - docker
+          - PyYAML
+          - docker-compose
+
+- hosts: perf-gen1.soft-machine.tech
+  vars:
+    site_tarball: www.tar.gz
+  tasks:
+
+    -  name: Download tarball site
+       get_url:
+         url: 'https://nexus.tourmachine.tech/repository/old_packages/{{site_tarball}}'
+         dest: /tmp/
+         username: "{{nexus_user}}"
+         password: "{{nexus_password}}"
+
+    - name: Unpack tarball
+      unarchive:
+        src: '/tmp/{{site_tarball}}'
+        dest: /var/
+        remote_src: yes
+      changed_when: False
+      become: yes
+
+    - name: install maven
+      import_role:
+        name: install_maven
+
+    - name: install nginx
+      import_role:
+        name: install_nginx
+
+    - name: Deploy nginx config
+      copy:
+        dest: /etc/nginx/conf.d/default.conf
+        content: |
+          server {
+              listen 80 default_server;
+              listen [::]:80 default_server;
+
+           root /var/www/html2;
+           index index.html;
+
+           location / {
+           try_files $uri $uri/ =404;
+           }
+
+           location /site  {
+           alias /opt/projects/odyssey-perf-suite/results;
+           autoindex on;
+           autoindex_exact_size off;
+           autoindex_localtime on;
+           }
+
+           location /admin {
+           alias /opt/projects/odyssey-admin-perf-suite/results;
+           autoindex on;
+           autoindex_exact_size off;
+           autoindex_localtime on;
+           }
+
+           location /sogaz {
+           alias /opt/projects/sogaz-perf-suite/sogaz-load/results;
+           autoindex on;
+           autoindex_exact_size off;
+           autoindex_localtime on;
+           }
+           }
+      become: yes
+
+    - name: install java 13
+      import_role:
+        name: install_openjdk
+      vars:
+        openjdk_version: 'openjdk13'
+
+    - name: Create project directory
+      file:
+        path: "{{item}}"
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: '0755'
+      loop:
+        - /opt/projects/odyssey-perf-suite
+        - /opt/projects/odyssey-admin-perf-suite
+        - /opt/projects/sogaz-perf-suite/sogaz-load
+      become: true
+
+
+- hosts: perf-app1.soft-machine.tech
+  tasks:
+
+    - name: install docker-compose in pyenv
+      import_role:
+        name: manage_python_packages
+      vars:
+        pyenv_virtualenv: ansible_python3
+        python_packages:
+          - docker
+          - PyYAML
+          - docker-compose
+
+    - name: install docker
+      import_role:
+        name: install_docker
+
+    - name: login in private registry
+      import_role:
+        name: docker_login
+
+    - name: install docker-compose in local pip
+      import_role:
+        name: manage_local_pip
+      vars:
+        local_pip_packages:
+        - package_name: docker-compose
+
+- hosts: perf-app2.soft-machine.tech
+  vars:
+    java_packages:
+      - java-1.8.0-openjdk.x86_64
+      - java-1.8.0-openjdk-devel.x86_64
+      - java-1.8.0-openjdk-headless.x86_64
+  tasks:
+
+    - name: install nginx
+      import_role:
+        name: install_nginx
+      tags: nginx  
+
+    - name: java Install for centos
+      yum:
+        name: "{{java_packages}}"
+        state: present
+        update_cache: yes
+      become: true
+      tags: java
+
+    - name: install activemq
+      import_role:
+        name: install_activemq
+
+    - name: install soapui
+      import_role:
+        name: install_soapui
+
+    - name: install libreoffice
+      import_role:
+        name: install_libreoffice
+      tags: libreoffice
+
+    - name: Create project directory
+      file:
+        path: "{{item}}"
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: '0755'
+      loop:
+        - /opt/ftp/sogazb2b_ftp/ERROR
+        - /opt/ftp/sogazb2b_ftp/PROCEEDED
+        - /opt/ftp/sogazb2b_ftp/IGNORED
+        - /opt/ftp/sogazb2b_ftp/INPUT
+        - /opt/www/b2b/client
+        - /opt/www/b2b/html
+        - /opt/www
+        - /opt/sogaz
+      become: true
+      tags: directory
+
+    - name: fast fix
+      file:
+        path: "{{item}}"
+        state: directory
+        owner: tomcat
+        group: tomcat
+        mode: '0755'
+      loop:
+        - /opt/sogaz/bin
+        - /opt/sogaz/conf
+        - /opt/sogaz/logs
+      become: true
+      tags: directory
+
+    - name: make robot.txt file
+      copy:
+        content: |
+                  User-agent: *
+                  Disallow: /
+        dest: /opt/www/b2b/robots.txt
+      become: true
+      tags: robots
+
+- hosts: perf_common_servers
+  tasks:
+
+    - name: Create users on all perf instance
+      import_role:
+        name: users_manage
+
+    - name: Set timezone on all perf instance
+      timezone:
+        name: Europe/Moscow
+      become: yes
+      tags: timezone
+...

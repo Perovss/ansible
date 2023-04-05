@@ -1,0 +1,15 @@
+---
+
+- name: Install microk8s
+  include: install.yml
+  tags:
+    - install
+
+- name: create kubectl config
+  become: yes
+  changed_when: true
+  shell: microk8s config > /home/{{ ansible_user_id }}/.kube/config
+  args:
+    executable: /bin/bash
+
+...

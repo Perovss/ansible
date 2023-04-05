@@ -1,0 +1,15 @@
+---
+- hosts: freeipa
+  vars_prompt:
+  - name: ipa_admin_password
+    prompt: "Enter FreeIPA admin password"
+    private: true
+  - name: ipa_ds_password
+    prompt: "Enter Directory Manager password"
+    private: true
+
+  tasks:
+  - name: setup freeipa
+    import_role:
+      name: setup_freeipa
+...

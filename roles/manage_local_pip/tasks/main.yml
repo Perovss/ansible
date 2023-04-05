@@ -1,0 +1,12 @@
+---
+- name: Install python package in system python
+  pip:
+    name: "{{item.package_name}}"
+    state: "{{item.local_pip_package_state | default('present',true)}}"
+    version: "{{item.local_pip_package_version | default(omit)}}"
+    virtualenv: "{{item.local_pip_virtualenv | default(omit)}}"
+    virtualenv_command: "{{item.local_pip_virtualenv_command | default(omit)}}"
+    executable: "{{item.local_pip_executable | default('pip3',true)}}"
+  loop: "{{local_pip_packages}}"
+  become: yes
+...

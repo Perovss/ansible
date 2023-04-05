@@ -1,0 +1,29 @@
+---
+- name: Get Kerberos token
+  shell: >
+    echo "{{ipa_admin_password}}" | kinit admin
+  when:
+  - ipa_role == "master"
+
+- name: create ID range
+  shell: >
+    LC_ALL="C.UTF-8" LC_CTYPE="C.UTF-8" ipa idrange-add
+    "{{ipa_realm_name}}"_id_range_2
+    --range-size=200000
+    --base-id=946800000
+  when:
+  - ipa_role == "master"
+
+- name: create replica dnarange
+  shell: >
+    LC_ALL="C.UTF-8" LC_CTYPE="C.UTF-8" ipa-replica-manage dnarange-set
+    "{{ipa_replica_hostname}}"
+    946800002-946999996
+  when:
+  - ipa_role == "master"
+
+- name: destroy Kerberos token
+  shell: kdestroy
+  when:
+  - ipa_role == "master"
+...

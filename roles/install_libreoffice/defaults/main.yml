@@ -1,0 +1,29 @@
+---
+libreoffice_tarball: "LibreOffice_6.3.3_Linux_x86-64_rpm"
+libreoffice_version: "LibreOffice_6.3.3.2_Linux_x86-64_rpm"
+libreoffice_download_url: 'https://nexus.tourmachine.tech/repository/old_packages/LibreOffice_6.3.3_Linux_x86-64_rpm.tar.gz'
+libreoffice_required_rpm:
+  - '/tmp/{{libreoffice_version}}/RPMS/libreoffice6.3-draw-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libreoffice6.3-math-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libreoffice6.3-ure-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libreoffice6.3-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libreoffice6.3-base-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libreoffice6.3-writer-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libreoffice6.3-en-US-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libreoffice6.3-calc-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-ooofonts-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-images-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-ooolinguistic-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-libreofficekit-data-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-core-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-base-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-calc-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-en-US-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-draw-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-librelogo-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-xsltfilter-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-writer-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-math-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-pyuno-6.3.3.2-2.x86_64.rpm'
+  - '/tmp/{{libreoffice_version}}/RPMS/libobasis6.3-graphicfilter-6.3.3.2-2.x86_64.rpm'
+...

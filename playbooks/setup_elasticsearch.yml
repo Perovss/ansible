@@ -1,0 +1,7 @@
+---
+- hosts: elasticsearch
+  tasks:
+  - name: setup elasticsearch
+    import_role:
+      name: deploy_elasticsearch
+...

@@ -1,0 +1,18 @@
+---
+- hosts: all
+  tasks:
+
+    - name: install oracle
+      import_role:
+        name: install_oracledb
+      tags: oracle
+
+    - name: install oracle_exporter
+      import_role:
+        name: install_oracle_exporter
+      tags: oracle_exporter
+
+    - name: create perf users & adding ssh key
+      import_role:
+        name: users_manage
+...

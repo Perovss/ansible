@@ -1,0 +1,36 @@
+---
+- hosts: external-vpn.soft-machine.ru
+  tasks:
+
+  - name: Make openvpn access point
+    import_role:
+      name: openvpn_server
+    vars:
+      openvpn_port: "443"
+      openvpn_proto: "tcp"
+      openvpn_dev: "tun"
+      openvpn_connect_name: tun_users
+      openvpn_mail_admin: "george.kirillov@soft-machine.ru"
+      mail_preffix: "Tashkent"
+      clients_names:
+      - gkirillov
+      - santonov
+      - mbarzilovich
+      push_routes: |-
+        push "redirect-gateway def1"
+        push "dhcp-option DNS 172.28.{{ansible_default_ipv4.network.split('.')[1]}}.1"
+
+    tags: openvpn
+
+  - name: SNAT for local network
+    iptables:
+      table: nat
+      chain: POSTROUTING
+      out_interface: "{{ansible_default_ipv4.interface}}"
+      source: "172.28.{{ansible_default_ipv4.network.split('.')[1]}}.0/24"
+      jump: MASQUERADE
+    notify: save iptables rules
+  become: true
+
+
+...

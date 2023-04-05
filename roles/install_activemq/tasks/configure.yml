@@ -1,0 +1,15 @@
+---
+- name: deploy activemq.xml
+  copy:
+    src: activemq.xml
+    dest: '{{activemq_current_install_dir}}/conf/'
+  become: yes
+  notify: enable & restart activemq
+
+- name: deploy activemq env
+  copy:
+    src: env
+    dest: '{{activemq_current_install_dir}}/bin/'
+  become: yes
+  notify: enable & restart activemq
+...

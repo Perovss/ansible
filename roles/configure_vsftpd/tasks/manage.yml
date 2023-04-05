@@ -1,0 +1,12 @@
+---
+- name: Set python env
+  set_fact:
+    ansible_python_interpreter: "{{ansible_env.HOME}}/.pyenv/shims/python"
+
+- htpasswd:
+    path: "{{vsftpd_htpasswd_path}}"
+    name: "{{item.username}}"
+    password: "{{item.password}}"
+  become: true
+  loop: "{{vsftpd_users}}"
+...

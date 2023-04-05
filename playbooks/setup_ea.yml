@@ -1,0 +1,76 @@
+---
+- hosts: ea.soft-machine.tech
+  vars:
+    s3_password: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      37313337666661346230663639663837383862663765343434336437376564616235333738323738
+      3436666330656330313832646461383238323361656535350a656232326164346136343166346261
+      64613264623037363233356366323633633936313132643139633461396565316362316338633864
+      6336366535396663310a636565313961346633376630306337353665323162356634383832366530
+      3364
+  tasks:
+
+    - name: install pyenv
+      import_role:
+        name: manage_python_packages
+      vars:
+        pyenv_virtualenv: ansible_python3
+        python_packages:
+          - docker
+          - PyYAML
+          - docker-compose
+          - s3cmd
+      tags: pyenv
+
+    - name: install docker engine
+      import_role:
+        name: install_docker
+      tags: docker
+
+    - name: check user
+      user:
+        name: jenkins
+        state: present
+      register: user_registered
+      become: true
+
+    - name: Creates directory
+      file:
+        path: "{{item}}"
+        state: directory
+      loop:
+        - /home/jenkins/backups
+      become_user: jenkins
+      become: yes
+
+    - name: create backup script
+      copy:
+        dest: "{{user_registered.home}}/backup_script.sh"
+        mode: 0755            
+        content: |
+          #!/usr/bin/env bash
+          BACKUP_TARGET=/var/lib/docker/volumes/mssql_mssql-data/_data/           
+          docker stop mssql_mssql_1
+          # create backup & zipped into multiple files 
+          sudo tar czpvf - $BACKUP_TARGET | split -d -b 4000M - ~/backups/BACKUP_MSSQL_$(date +"%d-%m-%Y-%H-%M").tar.gz
+          # clean up (remove all files older 5 days)
+          find ~/backups -mtime +5 -type f -delete
+          # upload to s3           
+          /home/jenkins/.pyenv/shims/s3cmd put backups/* s3://tools-backups
+          docker start mssql_mssql_1
+      become_user: jenkins
+      become: yes
+
+    - name: manage cron
+      import_role:
+        name: cron_manage
+      vars:
+        cron_params:
+            - cron_name: "mssql_backup"
+              cron_minute: "0"
+              cron_hour: "5"
+              cron_user: jenkins
+              cron_job: " {{user_registered.home}}/backup_script.sh > /dev/null 2>&1"              
+      become_user: jenkins
+      become: yes   
+...

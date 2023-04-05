@@ -1,0 +1,17 @@
+---
+- import_tasks: deploy_configs.yml
+  become: true
+
+- name: check auth basic use ?
+  command: grep -iRi 'auth_basic' /etc/nginx/conf.d/
+  ignore_errors: true
+  register: auth_basic_result
+  changed_when: false
+
+- import_tasks: setup_basic_auth.yml
+  when: |
+    (auth_basic_result.rc == 0) and
+    (basic_auth_users is defined) and 
+    (basic_auth_users |length > 0)
+  
+...

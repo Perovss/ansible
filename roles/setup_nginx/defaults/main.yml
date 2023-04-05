@@ -1,0 +1,4 @@
+---
+nginx_ssl_dir: /etc/nginx/ssl
+basic_auth_users: []
+...

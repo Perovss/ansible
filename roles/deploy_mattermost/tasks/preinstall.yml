@@ -1,0 +1,14 @@
+---
+- name: clone mattermost repositroy
+  git:
+    repo: "https://github.com/mattermost/docker"
+    dest: /mattermost
+    clone: yes
+  become: yes
+
+- name: prepare to deploy
+  file:
+    path: /mattermost/volumes/app/mattermost/
+    state: directory
+  become: yes
+...

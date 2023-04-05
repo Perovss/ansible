@@ -1,0 +1,9 @@
+---
+
+- name: Restart ssh
+  systemd:
+    name: "{{ ssh_service_name }}"
+    state: restarted
+  become: true
+
+...

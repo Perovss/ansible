@@ -1,0 +1,58 @@
+---
+- hosts: routers
+  tasks:
+
+    - name: Make p2p vpn between folders
+      import_role:
+        name: openvpn_p2p
+      tags: p2p
+
+    - name: Make dinamic routing between ovpn-instance
+      import_role:
+        name: quagga
+      tags: ospf
+
+    - name: Make openvpn access point
+      import_role:
+        name: openvpn_server
+      vars:
+        openvpn_port: "11443"
+        openvpn_dev: tap
+        dns_search:
+          - tourmachine.tech
+        private_dns:
+          - "{{ ansible_default_ipv4.network | ipmath(2) }}"
+        push_routes: |-
+          # infra
+          push "route 10.77.10.0 255.255.255.0"
+          push "route 10.77.11.0 255.255.255.0"
+          push "route 10.77.12.0 255.255.255.0"
+          # demo
+          push "route 10.128.0.0 255.255.255.0"
+          push "route 10.129.0.0 255.255.255.0"
+          push "route 10.130.0.0 255.255.255.0"
+          # uat
+          push "route 10.138.0.0 255.255.255.0"
+          push "route 10.139.0.0 255.255.255.0"
+          push "route 10.140.0.0 255.255.255.0"
+          # prod
+          push "route 10.148.0.0 255.255.255.0"
+          push "route 10.149.0.0 255.255.255.0"
+          push "route 10.150.0.0 255.255.255.0"
+          # yc-cloud tm atlassian-stack project
+          push "route 10.235.0.0 255.255.0.0"
+          # yc-cloud sm tools project
+          push "route 10.231.0.0 255.255.0.0"
+          # yc-cloud tm tools project
+          push "route 10.236.0.0 255.255.0.0"
+          # yc-cloud tm tools project (extra subnet in another region)
+          push "route 10.237.0.0 255.255.0.0"
+
+      tags: openvpn
+
+    - name: Make fireWall
+      import_role:
+        name: iptables
+      tags: iptables
+
+...

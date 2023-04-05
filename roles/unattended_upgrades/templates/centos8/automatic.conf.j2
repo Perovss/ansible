@@ -1,0 +1,16 @@
+[commands]
+upgrade_type = default
+random_sleep = 0
+download_updates = yes
+apply_updates = yes
+
+[emitters]
+emit_via = motd
+
+[email]
+email_from = {{unattended_upgrades_admin_email}}
+email_to = root
+email_host = {{ansible_hostname}}
+
+[base]
+debuglevel = 1

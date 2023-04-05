@@ -1,0 +1,14 @@
+---
+- name: add elastic rhel repofile
+  copy:
+    src: elastic-rhel.repo
+    dest: /etc/yum.repos.d/elastic-rhel.repo
+  become: yes
+
+- name: install or update filebeat to latest
+  yum:
+    name: filebeat
+    state: latest
+  become: yes
+  notify: restart filebeat
+...

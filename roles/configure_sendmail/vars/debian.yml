@@ -1,0 +1,7 @@
+---
+sendmail_packages:
+  - mailutils
+  - sendmail-bin
+  - cyrus-common
+  
+...

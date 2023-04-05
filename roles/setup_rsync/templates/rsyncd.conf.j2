@@ -1,0 +1,14 @@
+[global]
+pid file = /var/run/rsyncd.pid
+log file = /var/log/rsync.log
+reverse lookup = no
+
+
+{% if rsync_dirs is defined and rsync_dirs | length -%}
+{% for rsync_dir in rsync_dirs %}
+[{{rsync_dir | dirname | basename}}]
+path = {{rsync_dir}}
+read only = no
+uid = root
+{%- endfor %}
+{% endif %}

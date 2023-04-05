@@ -1,0 +1,41 @@
+---
+- hosts: proxy.soft-machine.tech
+  tasks:
+
+    - name: install squid
+      import_role:
+        name: squid_proxy
+      vars:
+        squid_users:
+         - squid_username: "merissa"
+           squid_password: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            39366632336431336463353362373666346633626434336365323365376661363839313636613763
+            3631626663303864323664646232303961343166303139340a376636326432376238643662303765
+            37623965336434316134313265623830633738376433646135353332313133323433663730373232
+            3231656462336163330a386336333137613631326162386462366566343331306431396265393333
+            3233
+      tags: proxy
+
+
+    - name: deploy node-exporter
+      import_role:
+        name: deploy_docker
+      vars:
+        docker_container_params:
+          - docker_container_name: "node-exporter"
+            docker_container_image: "prom/node-exporter:v0.18.1"
+            docker_container_volumes:
+              - "/proc:/host/proc:ro"
+              - "/sys:/host/sys:ro"
+              - "/:/rootfs:ro"
+            docker_container_command:
+              - '--path.procfs=/host/proc'
+              - '--path.sysfs=/host/sys'
+              - --collector.filesystem.ignored-mount-points
+              - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+            docker_container_ports:
+              - "9100:9100"
+            docker_container_restart_policy: always
+      tags: deploy_docker
+...

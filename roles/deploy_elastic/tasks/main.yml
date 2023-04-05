@@ -1,0 +1,26 @@
+---
+- name: deploy nginx config & ssl
+  copy:
+    src: "{{item}}"
+    dest: /srv/
+  loop:
+    - nginx_conf
+    - nginx_ssl
+  become: yes
+  notify: restart nginx
+
+- name: template compose file
+  template:
+    src: docker-compose.yml
+    dest: /srv/docker-compose.yml
+  become: yes
+
+- name: Set python env
+  set_fact:
+    ansible_python_interpreter: "{{ansible_env.HOME}}/.pyenv/shims/python"
+
+- name: deploy compose
+  docker_compose:
+    project_src: /srv/
+  become: yes
+...

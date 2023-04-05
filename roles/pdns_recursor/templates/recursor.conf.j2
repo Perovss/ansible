@@ -1,0 +1,16 @@
+setgid=pdns
+setuid=pdns
+
+{% for config_item, value in pdns_rec_config.items() | sort() %}
+{% if value is sameas True %}
+{{ config_item | replace('_', '-')}}=yes
+{% elif value is sameas False %}
+{{ config_item | replace('_', '-')}}=no
+{% elif value is string %}
+{{config_item | replace('_', '-')}}={{ value | string}}
+{% elif value is sequence %}
+{{config_item | replace('_', '-')}}={{ value | join(',')}}
+{% else %}
+{{config_item | replace('_', '-')}}={{ value | string}}
+{% endif %}
+{% endfor %}

@@ -1,0 +1,37 @@
+---
+- name: Ensure old versions of Docker are not installed.
+  package:
+    name:
+      - docker
+      - docker-common
+      - docker-engine
+    state: absent
+  become: true
+
+- name: Add Docker GPG key
+  rpm_key:
+    key: https://download.docker.com/linux/centos/gpg
+    state: present
+  become: true
+
+- name: Add Docker repository
+  yum_repository:
+    name: docker
+    description: docker YUM repo
+    baseurl: https://download.docker.com/linux/centos/7/$basearch/stable
+  become: true
+
+- name: Install Docker packages
+  yum:
+    name: "{{docker_packages}}"
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Ensure Docker is started and enabled at boot.
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+  become: true
+...

@@ -1,0 +1,12 @@
+---
+dependency_packages:
+  - curl
+  - gnupg2
+  - ca-certificates
+  - apache2-utils
+
+apt_state: present
+apt_update_cache: yes
+
+apt_repository_repo: "deb http://nginx.org/packages/ubuntu/ {{ansible_distribution_release}} nginx"
+apt_repository_state: present

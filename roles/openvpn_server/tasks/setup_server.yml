@@ -1,0 +1,20 @@
+---
+- block:
+  - name: Template openvpn server config
+    template:
+      src: '{{openvpn_dev}}.conf.j2'
+      dest: '/etc/openvpn/server/{{openvpn_connect_name}}.conf'
+    notify: restart openvpn
+
+  - name: Template openvpn scripts
+    template:
+      src: '{{item}}.j2'
+      dest: '/etc/openvpn/{{item}}'
+      mode: '0700'
+    loop:
+      - server_up.sh
+      - server_down.sh
+    when: openvpn_dev == 'tap'
+    notify: restart openvpn
+  become: true
+...

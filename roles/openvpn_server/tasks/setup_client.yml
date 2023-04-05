@@ -1,0 +1,57 @@
+---
+- block:
+  - name: Read CA file
+    command: cat "{{easyrsa_dir}}/easyrsa3/pki/ca.crt"  
+    no_log: true
+    register: openvpn_ca
+    changed_when: false
+
+  - name: Read ta.key file
+    command: cat "{{easyrsa_dir}}/easyrsa3/pki/ta.key"  
+    no_log: true
+    register: openvpn_tls_auth
+    changed_when: false
+
+  - name: Read client.crt file
+    command: cat "{{easyrsa_dir }}/easyrsa3/pki/issued/{{ item_names}}.crt"  
+    no_log: true
+    register: openvpn_client_cert
+    changed_when: false
+
+  - name: Read client.key file
+    command: cat "{{easyrsa_dir }}/easyrsa3/pki/private/{{ item_names}}.key"  
+    no_log: true
+    register: openvpn_client_key
+    changed_when: false
+
+  - name: Template openvpn client config
+    template:
+      src: "client_config.ovpn.j2"
+      dest: "{{easyrsa_dir }}/easyrsa3/pki/{{ mail_preffix }}.{{ item_names}}.ovpn"
+
+  - name:  Synchronization pki infra
+    synchronize:
+      src: "{{easyrsa_dir}}/"
+      dest: "rsync://{{item }}/{{ easyrsa_dir | dirname | basename}}"
+    loop: "{{groups[target_group]}}" 
+    delegate_to: "{{inventory_hostname}}"
+    when: inventory_hostname != item 
+
+  - name: Sending client config & instructions
+    mail:
+      host: "{{openvpn_mail_host}}"
+      port: "{{openvpn_mail_port}}"
+      username: "{{openvpn_mail_user}}"
+      password: "{{openvpn_mail_pass}}"
+      secure: "{{openvpn_secure}}"
+      from: "{{openvpn_mail_user}}"
+      to: 
+        - "{{item_names }} <{{ item_names }}@{{ openvpn_domain}}>"
+        - "{{openvpn_mail_admin}}"
+      subject: "Новый доступ OpenVPN для {{item_names}}"
+      body: "Файл конфигурации OpenVPN клиента прикреплён к этому письму. Инструкция: {{openvpn_client_instruction_url}} "
+      attach: "{{easyrsa_dir }}/easyrsa3/pki/{{ mail_preffix }}.{{ item_names}}.ovpn"
+  become: true
+  run_once: true
+  tags: client  
+...

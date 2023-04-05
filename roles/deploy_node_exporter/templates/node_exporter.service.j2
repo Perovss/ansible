@@ -1,0 +1,17 @@
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+
+[Service]
+Environment=CONSUL_URL=https://{{consul_cluster | default('consul-tools.soft-machine.tech')}}
+User=node_exporter
+ExecStartPre=/bin/sh -c 'until ping -c1 google.com; do sleep 1; done;'
+ExecStart={{ node_exporter_path }} $OPTIONS
+ExecStartPost=/usr/local/bin/consul-service register -e {{env}} -n %N -p 9100 -t scrapable
+ExecStop=/usr/local/bin/consul-service deregister -e {{env}} -n %N
+
+
+[Install]
+WantedBy=multi-user.target

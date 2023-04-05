@@ -1,0 +1,7 @@
+---
+- name: Check if Nginx is installed
+  command: /usr/sbin/nginx -v
+  ignore_errors: true
+  changed_when: false
+  register: nginxinstalled
+...

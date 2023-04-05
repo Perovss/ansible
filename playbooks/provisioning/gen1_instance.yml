@@ -1,0 +1,81 @@
+---
+- hosts: gen1
+  tasks:
+
+    - name: Unpack tarball
+      unarchive:
+        src: /tmp/www.tar.gz
+        dest: /var/
+        remote_src: yes
+      changed_when: False
+      become: yes
+
+    - name: install maven
+      import_role:
+        name: install_maven
+
+    - name: install nginx
+      import_role:
+        name: install_nginx
+
+    - name: Deploy nginx config
+      copy:
+        dest: /etc/nginx/conf.d/default.conf
+        content: |
+          server {
+              listen 80 default_server;
+              listen [::]:80 default_server;
+
+           root /var/www/html2;
+           index index.html;
+
+           location / {
+           try_files $uri $uri/ =404;
+           }
+
+           location /site  {
+           alias /opt/projects/odyssey-perf-suite/results;
+           autoindex on;
+           autoindex_exact_size off;
+           autoindex_localtime on;
+           }
+
+           location /admin {
+           alias /opt/projects/odyssey-admin-perf-suite/results;
+           autoindex on;
+           autoindex_exact_size off;
+           autoindex_localtime on;
+           }
+
+           location /sogaz {
+           alias /opt/projects/sogaz-perf-suite/sogaz-load/results;
+           autoindex on;
+           autoindex_exact_size off;
+           autoindex_localtime on;
+           }
+           }
+      become: yes
+
+    - name: install java 13
+      import_role:
+        name: install_openjdk
+      vars:
+        openjdk_version: 'openjdk13'
+
+    - name: Create project directory
+      file:
+        path: "{{item}}"
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: '0755'
+      loop:
+        - /opt/projects/odyssey-perf-suite
+        - /opt/projects/odyssey-admin-perf-suite
+        - /opt/projects/sogaz-perf-suite/sogaz-load
+      become: true
+
+    - name: create perf users & adding ssh key
+      import_role:
+        name: users_manage
+...

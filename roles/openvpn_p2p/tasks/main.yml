@@ -1,0 +1,15 @@
+---
+- import_tasks: install.yml
+  tags: install
+  when: ansible_facts['os_family']|lower == 'debian'
+
+- import_tasks: sysctl.yml
+  tags: prepare
+
+- include_tasks: setup.yml
+  loop: "{{groups[target_group]}}"  
+  loop_control:
+      loop_var: item_host   
+  when: inventory_hostname != item_host
+  tags: setup
+...

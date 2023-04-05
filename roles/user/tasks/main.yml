@@ -1,0 +1,30 @@
+---
+
+- name: user manage
+  user:
+    name: "{{item.0.user_name}}"
+    password: "{{item.0.user_password | default(omit)}}"
+    update_password: "{{item.0.user_update_password | default(omit)}}"
+    shell: "{{item.0.user_shell | default('/bin/bash',true)}}"    
+    force: "{{item.0.user_force | default(omit)}}"
+    remove: "{{item.0.user_remove | default(omit)}}"
+    generate_ssh_key: "{{item.0.user_generate_ssh_key | default(omit)}}"
+    ssh_key_bits: "{{item.0.user_ssh_key_bits | default(omit)}}"
+    ssh_key_comment: "{{item.0.user_ssh_key_comment | default(omit)}}"
+    ssh_key_file: "{{item.0.user_ssh_key_file | default(omit)}}"
+    ssh_key_passphrase: "{{item.0.user_ssh_key_passphrase | default(omit)}}"
+    system: "{{item.0.user_system | default(omit)}}"
+    uid: "{{item.0.user_uid | default(omit)}}"
+    group: "{{item.0.user_group | default(omit)}}"
+    create_home: "{{item.0.user_create_home | default(omit)}}"
+    home: "{{item.0.user_home | default(omit)}}"
+    move_home: "{{item.0.user_move_home | default(omit)}}"
+    state: "{{item.0.user_state | default(omit)}}"
+    groups: "{{item.0.user_groups | default(omit)}}"
+    append: "{{item.0.user_append | default(omit)}}" 
+    comment: "{{item.0.user_comment | default(omit)}}"
+  become: true  
+  loop: "{{users_params|subelements('servers')}}"
+  when: item.1 in group_names
+
+...

@@ -1,0 +1,5 @@
+---
+docker_login_registry: ""
+docker_login_username: ""
+docker_login_password: ""
+...

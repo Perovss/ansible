@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Остановка нужных сервисов
+/usr/sbin/service openvpn stop
+/usr/sbin/service isc-dhcp-server stop
+/usr/sbin/service pdns-recursor stop
+# Отключаем дополнительные интерфейсы
+/sbin/ifdown --force ens3:mgmt
+/sbin/ifdown --force ens3.9
+/sbin/ifdown --force ens3.50
+/sbin/ifdown --force ens3.255
+/sbin/ifdown --force ens3.1001
+/sbin/ifdown --force ens3.1002
+/sbin/ifdown --force br0-vpn
+# Возвращаем обратно маршрут по-умолчанию
+/sbin/ip route add default via `/sbin/ifquery $1 | /bin/grep -oP '(?<=gateway: )([\d.]+)'`

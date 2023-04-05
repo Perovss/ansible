@@ -1,0 +1,39 @@
+---
+- name: install or update prometheus-node-exporter
+  apt:
+    name: prometheus-node-exporter
+    update_cache: yes
+    state: latest
+  become: yes
+
+- name: add elasticsearch-exporter binary
+  copy:
+    src: elasticsearch_exporter
+    dest: /usr/bin/elasticsearch_exporter
+    mode: 0755
+  become: yes
+  notify: restart elasticsearch-exporter
+
+- name: add elasticsearch-exporter systemd-unit
+  copy:
+    src: elasticsearch-exporter.service
+    dest: /lib/systemd/system/elasticsearch-exporter.service
+  become: yes
+
+- name: enable and start elasticsearch-exporter
+  systemd:
+    name: elasticsearch-exporter
+    enabled: yes
+    state: started
+    daemon_reload: yes
+  become: yes
+
+- name: restart elasticsearch-exporter
+  systemd:
+    name: elasticsearch-exporter
+    enabled: yes
+    state: restarted
+  become: yes
+  # run only extra-vars is set
+  when: (trigger_restart_elasticsearch_exporter is defined) and (trigger_restart_elasticsearch_exporter == true)
+...

@@ -1,0 +1,14 @@
+---
+- hosts: mail-sms-ftp.soft-machine.tech
+  tasks:
+
+    - name: setup smtp
+      import_role:
+        name: configure_ssmtp
+      tags: smtp
+
+    - name: setup ftp
+      import_role:
+        name: configure_vsftpd
+      tags: ftp
+...

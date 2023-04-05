@@ -1,0 +1,4 @@
+*.log
+.python-version
+.vagrant
+.project

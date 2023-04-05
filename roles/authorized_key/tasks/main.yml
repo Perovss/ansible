@@ -1,0 +1,15 @@
+---
+
+- name: Create SSH authorized key
+  authorized_key:
+    user: "{{item.0.user_name}}"
+    state: "{{item.0.authorized_key_state | default(omit)}}"
+    key: "{{item.0.authorized_key_key | join('\n')}}"
+    exclusive: "{{item.0.authorized_key_exclusive | default('yes',true)}}"
+  loop: "{{users_params|subelements('servers')}}"
+  loop_control:
+    label: "username: {{item.0.user_name}}, ssh_key:{{'True' if item.0.authorized_key_key is defined else 'False'}}"  
+  become: true
+  when: item.1 in group_names and item.0.user_state is not defined
+
+...

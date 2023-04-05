@@ -1,0 +1,29 @@
+    global:
+      resolve_timeout: 5m
+      slack_api_url: 'https://hooks.slack.com/services/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'
+
+    route:
+      receiver: 'ops-slack'
+      group_by: [alertname, app]
+
+    receivers:
+    - name: 'ops-slack'
+      slack_configs:
+      - channel: '#alert-upr-prod'
+        send_resolved: true
+        username: '{{template "slack.default.username" .}}'
+        color: '{{if eq .Status "firing" }}danger{{ else }}good{{ end}}'
+        title: '{{template "slack.default.title" .}}'
+        title_link: '{{template "slack.default.titlelink" .}}'
+        text: |-
+          {{range .Alerts}}
+            *Alert:* {{.Annotations.summary }} - `{{ .Labels.severity}}`
+            *Description:* {{.Annotations.description}}
+            {{if .Annotations.dashboard }}<{{ .Annotations.dashboard }}|Grafana>{{ end}}
+            {{end}}
+        fallback: '{{template "slack.default.fallback" .}}'
+        icon_emoji: '{{template "slack.default.iconemoji" .}}'
+        icon_url: 'https://avatars3.githubusercontent.com/u/3380462'
+
+    templates:
+      - '/etc/alertmanager/*.tmpl'

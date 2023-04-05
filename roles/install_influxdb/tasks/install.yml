@@ -1,0 +1,26 @@
+---
+- name: Import InfluxData GPG signing key
+  apt_key:
+    url: https://repos.influxdata.com/influxdb.key
+    state: present
+  become: true
+
+- name: Add InfluxData repository
+  apt_repository:
+    repo: deb https://repos.influxdata.com/{{ansible_distribution | lower }} {{ ansible_distribution_release}} stable
+    state: present
+  become: true
+
+- name: Install InfluxDB packages
+  apt:
+    name: influxdb
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  register: apt_result
+  until: apt_result is not failed
+  retries: 3
+  delay: 30
+  ignore_errors: yes    
+  become: true
+...

@@ -1,0 +1,40 @@
+---
+- hosts: snipeit.tourmachine.net
+  tasks:
+
+    - name: install pyenv
+      import_role:
+        name: manage_python_packages
+      vars:
+        pyenv_virtualenv: ansible_python3
+        python_packages:
+          - docker
+          - PyYAML
+          - docker-compose
+      tags: pyenv
+
+    - name: install docker engine
+      import_role:
+        name: install_docker
+      tags: docker
+
+    - name: deploy compose
+      import_role:
+        name: deploy_compose
+      vars:
+        server_name: snipeit 
+      tags: deploy_compose
+
+    - name: Make fireWall
+      import_role:
+        name: iptables
+      vars:
+        extra_services:
+        - name: http
+          port: 80
+        - name: https
+          port: 443
+        - name: http
+          port: 3051                      
+      tags: iptables      
+...

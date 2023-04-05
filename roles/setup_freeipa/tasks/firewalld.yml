@@ -1,0 +1,30 @@
+---
+- name: Configure firewalld services
+  firewalld:
+    zone: public
+    service: "{{item}}"
+    permanent: true
+    state: enabled
+  with_items:
+  - ntp
+  - http
+  - https
+  - ldap
+  - ldaps
+  - kerberos
+  - kpasswd
+  - dns
+  - dhcp
+  - kadmin
+
+- name: Configure firewalld ports
+  firewalld:
+    zone: public
+    port: "{{item}}"
+    permanent: true
+    state: enabled
+  with_items:
+  - 53/udp
+  - 53/tcp
+  - 8080/tcp
+...

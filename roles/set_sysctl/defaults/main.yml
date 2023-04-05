@@ -1,0 +1,9 @@
+---
+sysctl_params:
+  - sysctl_name: ""
+    sysctl_value: ""
+    sysctl_state: present
+    sysctl_custom_file: "/etc/sysctl.conf"
+    sysctl_reload: yes
+    sysctl_set: no
+...

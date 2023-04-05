@@ -1,0 +1,13 @@
+---
+- name: install pip
+  yum:
+    name: "{{packages}}"
+    state: present
+    update_cache: yes
+  register: yum_result
+  until: yum_result is not failed
+  retries: 3
+  delay: 10
+  ignore_errors: yes
+  become: true
+...

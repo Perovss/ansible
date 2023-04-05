@@ -1,0 +1,17 @@
+---
+update_cache_command: 'yum makecache'
+pyenv_dependency_packages:
+- zlib-devel
+- bzip2
+- bzip2-devel
+- readline-devel
+- sqlite
+- sqlite-devel
+- openssl-devel
+- xz
+- xz-devel
+- libffi-devel
+- git
+- gcc
+- python36-virtualenv
+- python3-pip

@@ -1,0 +1,42 @@
+hostname {{inventory_hostname_short}}
+password {{zebra_password}}
+{% if ( (zebra_logging is defined and zebra_logging | length) and
+ ( zebra_logging == 'file' and quagga_logs_dir is defined ) and
+ ( quagga_logs_dir | length and zebra_log_file is defined ) and
+ ( zebra_log_file | length and zebra_log_level is defined ) and
+ ( zebra_log_level | length) ) %}
+log {{zebra_logging }} {{ quagga_logs_dir }}/{{ zebra_log_file }} {{ zebra_log_level}}
+{% endif %}
+
+{% if ansible_default_ipv4.address| ipaddr('public') %}
+interface {{ansible_default_ipv4.interface}}
+ description public inteface
+{% endif %}
+
+{% for local_interface in local_interfaces|sort(attribute='device') %}
+interface {{local_interface.device}}
+ description local inteface
+{%- endfor %}
+
+{% if ovpn_p2p_interfaces is defined and ovpn_p2p_interfaces|length %}
+{% for ovpn_p2p_interface in ovpn_p2p_interfaces|sort(attribute='device') %}
+interface {{ovpn_p2p_interface.device}}
+ description p2p tunnel interface
+{%- endfor %}
+{% endif %}
+
+{% if bridge_interfaces is defined and bridge_interfaces|length %}
+{% for bridge_interface in bridge_interfaces|sort(attribute='device') %}
+interface {{bridge_interface.device}}
+ description bridge for ovpn tap interface
+{% endfor %}
+{% endif %}
+
+{% if ovpn_tun_users_interfaces is defined and ovpn_tun_users_interfaces|length %}
+{% for ovpn_tun_users_interface in ovpn_tun_users_interfaces|sort(attribute='device') %}
+interface {{ovpn_tun_users_interface.device}}
+ description ovpn tun users interface
+{% endfor %}
+{% endif %}
+
+ip forwarding

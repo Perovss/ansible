@@ -1,0 +1,14 @@
+---
+- name: Enable EPEL Repository on CentOS 8
+  dnf:
+    name: epel-release
+    state: latest
+  become: True
+
+- name: Package Install on CentOS 8
+  dnf:
+    name: "{{packages_list}}"
+    state: "{{dnf_state | default('present',true)}}"
+    update_cache: "{{dnf_update_cache | default('yes',true)}}"
+  become: true
+...

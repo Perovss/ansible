@@ -1,0 +1,9 @@
+<network>
+<name>ovs-vlan{{untagged_vlan}}</name>
+<forward mode='bridge'/>
+<bridge name='{{ovs_bridge}}'/>
+<vlan>
+<tag id='{{untagged_vlan}}'/>
+</vlan>
+<virtualport type='openvswitch'/>
+</network>

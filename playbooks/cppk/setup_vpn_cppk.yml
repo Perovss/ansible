@@ -1,0 +1,35 @@
+---
+- hosts: routers
+  tasks:
+
+  - name: Make openvpn access point
+    import_role:
+      name: openvpn_server
+    vars:
+      openvpn_port: "443"
+      openvpn_proto: "tcp"
+      openvpn_dev: "tun"
+      openvpn_connect_name: tun_users
+      openvpn_mail_admin: "george.kirillov@soft-machine.ru"
+      mail_preffix: "cppk"
+      clients_names:
+      - gkirillov
+      - amoiseev
+      - ayapryntsev
+      - podoshvin
+      push_routes: |-
+        # yc-cloud cppk project
+        push "route 10.233.0.0 255.255.0.0"
+        # proj cppk prod p2p coonection on cppk-prod-srv.soft-machine.tech
+        push "route 172.28.159.0 255.255.255.252"
+        # proj cppk prod p2p coonection on cppk-prod-web.soft-machine.tech
+        push "route 172.28.164.0 255.255.255.252"
+        # proj cppk prod p2p coonection on cppk-prod-db.soft-machine.tech
+        push "route 172.28.222.0 255.255.255.252"
+    tags: openvpn
+
+  - name: Make fireWall on vpn-instance
+    import_role:
+      name: iptables
+    tags: iptables
+...

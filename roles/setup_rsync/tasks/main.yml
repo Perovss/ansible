@@ -1,0 +1,23 @@
+---
+- block:  
+    - name: Install Packages 
+      apt:
+        name:
+          - rsync
+          - iptables-persistent    
+      
+    - name: Allow incoming rsync
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{rsync_port}}"
+        jump: ACCEPT
+      notify: save iptables rules  
+      
+    - name: Template rsync server config
+      template:
+        src: rsyncd.conf.j2
+        dest: /etc/rsyncd.conf
+      notify: restart rsync
+  become: true    
+...

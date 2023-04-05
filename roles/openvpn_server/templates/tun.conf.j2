@@ -1,0 +1,42 @@
+port {{openvpn_port}}
+proto {{openvpn_proto}}
+dev tun_users
+topology subnet
+server 172.27.{{ansible_default_ipv4.network.split('.')[1]}}.0 255.255.255.0
+
+keepalive 10 60
+{{openvpn_comp}}
+persist-key
+persist-tun
+user nobody
+group nogroup
+status /var/log/openvpn/{{openvpn_connect_name}}-status.log
+log-append /var/log/openvpn/{{openvpn_connect_name}}.log
+verb {{openvpn_verb | default('3', true)}}
+
+{% if private_dns is defined and private_dns | length %}
+# DNS
+{% for dns in private_dns %}
+push "dhcp-option DNS {{dns}}"
+{% endfor %}
+{% endif %}
+{% if dns_search is defined and dns_search | length %}
+{% for dns in dns_search %}
+push "dhcp-option DOMAIN-SEARCH {{dns}}"
+{% endfor %}
+{% endif %}
+
+{% if push_routes is defined and push_routes | length -%}
+# Маршруты
+{{push_routes}}
+{%- endif %}
+
+# Сертификаты и ключи
+tls-server
+cipher {{openvpn_cipher}}
+ca {{easyrsa_dir}}/easyrsa3/pki/ca.crt
+cert {{easyrsa_dir}}/easyrsa3/pki/issued/server.crt
+key {{easyrsa_dir}}/easyrsa3/pki/private/server.key
+dh {{easyrsa_dir}}/easyrsa3/pki/dh.pem
+tls-auth {{easyrsa_dir}}/easyrsa3/pki/ta.key 0
+crl-verify {{easyrsa_dir}}/easyrsa3/pki/crl.pem

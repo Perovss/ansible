@@ -1,0 +1,9 @@
+---
+squid_packages:
+  - apache2-utils
+  - squid3
+
+squid_users: []
+#squid_users:
+# - squid_username: ""
+#   squid_password: ""

@@ -1,0 +1,6 @@
+---
+nginx_ssl_dir: /etc/nginx/ssl
+basic_auth_users: []
+#  - basic_auth_username: "user"
+#    basic_auth_password: "password"
+...

@@ -1,0 +1,9 @@
+---
+dependencies:
+
+  - role: soft_manage
+    vars:
+      apt_list:
+        - software-properties-common
+
+...
